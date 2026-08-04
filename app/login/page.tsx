@@ -36,7 +36,7 @@ export default function LoginPage() {
 
     const em = email.trim().toLowerCase();
     if (!em || !password) {
-      setErr("Inserisci email e password.");
+      setErr("Enter your email and password.");
       return;
     }
 
@@ -48,7 +48,7 @@ export default function LoginPage() {
       });
 
       if (error) throw new Error(error.message);
-      if (!data.session) throw new Error("Login non riuscito (sessione mancante).");
+      if (!data.session) throw new Error("Login failed (missing session).");
 
       const uid = data.session.user.id;
 
@@ -67,7 +67,7 @@ export default function LoginPage() {
       const next = new URLSearchParams(window.location.search).get("next");
       window.location.href = next || (isAdmin ? "/admin/events" : "/events");
     } catch (e: any) {
-      setErr(e?.message ?? "Errore login");
+      setErr(e?.message ?? "Login error");
     } finally {
       setLoading(false);
     }
@@ -88,10 +88,10 @@ export default function LoginPage() {
       <div className="container" style={{ maxWidth: 560 }}>
         <div className="card card-pad" style={{ marginTop: 18 }}>
           <div className="h-serif" style={{ fontSize: 28, fontWeight: 900 }}>
-            Accedi
+            Sign in
           </div>
           <div className="muted" style={{ marginTop: 6 }}>
-            Inserisci le credenziali ricevute.
+            Enter the credentials you received.
           </div>
 
           {err && (
@@ -118,7 +118,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
                 disabled={loading}
-                placeholder="nome@email.com"
+                placeholder="name@email.com"
               />
             </div>
 
@@ -136,11 +136,11 @@ export default function LoginPage() {
             </div>
 
             <button className="btn" disabled={loading}>
-              {loading ? "Accesso..." : "Accedi"}
+              {loading ? "Signing in..." : "Sign in"}
             </button>
 
             <div className="muted" style={{ fontSize: 12 }}>
-              Se sei admin verrai portato nella dashboard. Gli sposi vanno nel planner.
+              Administrators will be taken to the dashboard. Couples will be taken to the planner.
             </div>
           </form>
         </div>

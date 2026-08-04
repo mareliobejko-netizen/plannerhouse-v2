@@ -23,7 +23,7 @@ export default function HomePage() {
   return (
     <div className="container">
       <div className="card card-pad">
-        <div className="muted">Caricamento…</div>
+        <div className="muted">Loading…</div>
       </div>
     </div>
   );

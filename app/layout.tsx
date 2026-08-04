@@ -14,7 +14,7 @@ const sans = Inter({
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="it" className={`${serif.variable} ${sans.variable}`}>
+    <html lang="en" className={`${serif.variable} ${sans.variable}`}>
       <body>{children}</body>
     </html>
   );

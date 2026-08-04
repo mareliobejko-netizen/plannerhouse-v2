@@ -8,6 +8,10 @@ type Body = {
   event_name: string;
   start_date?: string | null;
   end_date?: string | null;
+  welcome_title?: string | null;
+  welcome_message?: string | null;
+  tip_message?: string | null;
+  tutorial_video_url?: string | null;
 };
 
 export async function POST(req: Request) {
@@ -94,6 +98,10 @@ if (profErr || !prof?.is_admin) {
         end_date: body.end_date ?? null,
         created_by: newUserId,
         status: "draft",
+        welcome_title: body.welcome_title?.trim() || "Welcome to your private area",
+        welcome_message: body.welcome_message?.trim() || null,
+        tip_message: body.tip_message?.trim() || null,
+        tutorial_video_url: body.tutorial_video_url?.trim() || null,
       })
       .select("id")
       .single();

@@ -10,11 +10,23 @@ type EventRow = {
   end_date: string | null;
   status: "draft" | "submitted" | "final";
   created_at: string;
+  welcome_title: string | null;
+  welcome_message: string | null;
+  tip_message: string | null;
+  tutorial_video_url: string | null;
 };
 
 const WEBSITE_URL = "https://agriturismodogana.it/"; // TODO: cambia
 const INSTAGRAM_URL = "https://www.instagram.com/luciasitalia/"; // TODO: cambia
 const FACEBOOK_URL = "https://www.facebook.com/agriturismodogana.it/"; // TODO: cambia
+
+const DEFAULT_WELCOME_TITLE = "Welcome to your private area";
+const DEFAULT_WELCOME_MESSAGE = `We are delighted that you chose our villa for such a special occasion. This page is designed to make apartment and guest management simple and organised: you can add guest names, note any requirements (such as allergies or intolerances), and assign people to rooms quickly and clearly.
+
+Our goal is to make the planning process as stress-free as possible: we will do our best to accommodate your requests and support you every step of the way, so you can focus on what truly matters. For any questions or special requirements, please contact us through the official channels above.
+
+Thank you again for your trust — we look forward to welcoming you!`;
+const DEFAULT_TIP_MESSAGE = "Open the planner and start adding guests. When you are finished, submit the list.";
 
 function IconGlobe(props: { size?: number }) {
   const s = props.size ?? 18;
@@ -82,10 +94,42 @@ function fmtDate(d: string | null) {
   return d;
 }
 
+
+function getVideoEmbedUrl(rawUrl: string) {
+  try {
+    const url = new URL(rawUrl);
+
+    if (url.hostname.includes("youtube.com")) {
+      const id = url.searchParams.get("v");
+      if (id) return `https://www.youtube.com/embed/${id}?autoplay=1`;
+
+      const parts = url.pathname.split("/").filter(Boolean);
+      const shortIndex = parts.findIndex((part) => part === "shorts" || part === "embed");
+      if (shortIndex >= 0 && parts[shortIndex + 1]) {
+        return `https://www.youtube.com/embed/${parts[shortIndex + 1]}?autoplay=1`;
+      }
+    }
+
+    if (url.hostname === "youtu.be") {
+      const id = url.pathname.split("/").filter(Boolean)[0];
+      if (id) return `https://www.youtube.com/embed/${id}?autoplay=1`;
+    }
+
+    if (url.hostname.includes("vimeo.com")) {
+      const id = url.pathname.split("/").filter(Boolean).pop();
+      if (id) return `https://player.vimeo.com/video/${id}?autoplay=1`;
+    }
+
+    return rawUrl;
+  } catch {
+    return rawUrl;
+  }
+}
+
 function statusBadge(status: EventRow["status"]) {
-  if (status === "draft") return { text: "Bozza", cls: "badge draft" };
-  if (status === "submitted") return { text: "Inviata", cls: "badge submitted" };
-  return { text: "Completa", cls: "badge final" };
+  if (status === "draft") return { text: "Draft", cls: "badge draft" };
+  if (status === "submitted") return { text: "Submitted", cls: "badge submitted" };
+  return { text: "Final", cls: "badge final" };
 }
 
 export default function EventsHomePage() {
@@ -93,12 +137,15 @@ export default function EventsHomePage() {
   const [err, setErr] = useState<string | null>(null);
 
   const [event, setEvent] = useState<EventRow | null>(null);
+  const [videoOpen, setVideoOpen] = useState(false);
+  const [welcomeOpen, setWelcomeOpen] = useState(false);
+  const [guestStats, setGuestStats] = useState({ total: 0, assigned: 0, unassigned: 0 });
 
   async function loadMySingleEvent(uid: string) {
     // 1) prova come owner (created_by)
     const owned = await supabase
       .from("events")
-      .select("id,name,start_date,end_date,status,created_at")
+      .select("id,name,start_date,end_date,status,created_at,welcome_title,welcome_message,tip_message,tutorial_video_url")
       .eq("created_by", uid)
       .order("created_at", { ascending: false })
       .limit(1);
@@ -120,7 +167,7 @@ export default function EventsHomePage() {
 
     const ev = await supabase
       .from("events")
-      .select("id,name,start_date,end_date,status,created_at")
+      .select("id,name,start_date,end_date,status,created_at,welcome_title,welcome_message,tip_message,tutorial_video_url")
       .eq("id", eventId)
       .single();
 
@@ -157,8 +204,21 @@ export default function EventsHomePage() {
 
         const e = await loadMySingleEvent(uid);
         setEvent(e);
+
+        if (e) {
+          const { data: guests, error: guestsErr } = await supabase
+            .from("guests")
+            .select("id,apartment_id")
+            .eq("event_id", e.id);
+
+          if (guestsErr) throw new Error(guestsErr.message);
+
+          const total = guests?.length ?? 0;
+          const assigned = guests?.filter((guest) => Boolean(guest.apartment_id)).length ?? 0;
+          setGuestStats({ total, assigned, unassigned: Math.max(0, total - assigned) });
+        }
       } catch (e: any) {
-        setErr(e?.message ?? "Errore caricamento");
+        setErr(e?.message ?? "Loading error");
       } finally {
         setLoading(false);
       }
@@ -175,15 +235,15 @@ export default function EventsHomePage() {
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
-            <a className="btn-ghost social-btn" href={WEBSITE_URL} target="_blank" rel="noreferrer" aria-label="Apri il sito">
+            <a className="btn-ghost social-btn" href={WEBSITE_URL} target="_blank" rel="noreferrer" aria-label="Open website">
   <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
     <IconGlobe />
-    <span className="social-text">Sito</span>
+    <span className="social-text">Website</span>
   </span>
 </a>
 
 
-            <a className="btn-ghost social-btn" href={INSTAGRAM_URL} target="_blank" rel="noreferrer" aria-label="Apri Instagram">
+            <a className="btn-ghost social-btn" href={INSTAGRAM_URL} target="_blank" rel="noreferrer" aria-label="Open Instagram">
   <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
     <IconInstagram />
     <span className="social-text">Instagram</span>
@@ -191,7 +251,7 @@ export default function EventsHomePage() {
 </a>
 
 
-           <a className="btn-ghost social-btn" href={FACEBOOK_URL} target="_blank" rel="noreferrer" aria-label="Apri Facebook">
+           <a className="btn-ghost social-btn" href={FACEBOOK_URL} target="_blank" rel="noreferrer" aria-label="Open Facebook">
   <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
     <IconFacebook />
     <span className="social-text">Facebook</span>
@@ -213,98 +273,147 @@ export default function EventsHomePage() {
         <div className="green-line" />
       </div>
 
-      <div className="container">
-        {/* HERO */}
-        <div className="card card-pad" style={{ padding: 18 }}>
-          <div className="h-serif" style={{ fontSize: 34, fontWeight: 900, lineHeight: 1.05 }}>
-            Benvenuti nella vostra area riservata
-          </div>
-
-          <div className="muted" style={{ marginTop: 10, fontSize: 15, lineHeight: 1.75, maxWidth: 980 }}>
-            Siamo felici che abbiate scelto la nostra villa per un momento così speciale.
-            Questa pagina è pensata per rendere semplice e ordinata la gestione degli appartamenti e degli ospiti: potrete
-            inserire i nominativi, indicare eventuali esigenze (come allergie o intolleranze), e assegnare le persone alle camere
-            in modo chiaro e veloce.
-            <br /><br />
-            Il nostro obiettivo è farvi vivere l’organizzazione con serenità: ci impegniamo a soddisfare tutte le vostre richieste
-            e a supportarvi in ogni passaggio, così che possiate concentrarvi su ciò che conta davvero.
-            Se avete dubbi o necessità particolari, potete contattarci tramite i nostri canali ufficiali qui sopra.
-            <br /><br />
-            Grazie ancora per la fiducia — siamo pronti ad accogliervi!
-          </div>
-
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 14 }}>
-            <span className="badge draft">Suggerimento</span>
-            <span className="muted" style={{ fontSize: 13 }}>
-              Aprite il planner e iniziate ad aggiungere gli ospiti. Quando avete finito, inviate la lista.
-            </span>
-          </div>
-        </div>
-
-        {/* CONTENT */}
+      <main className="container couple-home">
         {err && (
-          <div
-            className="card card-pad"
-            style={{
-              marginTop: 12,
-              borderColor: "rgba(239,68,68,.35)",
-              color: "#b91c1c",
-              background: "rgba(239,68,68,.06)",
-            }}
-          >
-            {err}
-          </div>
+          <div className="card card-pad couple-error">{err}</div>
         )}
 
         {loading ? (
-          <div className="card card-pad" style={{ marginTop: 12 }}>
-            <div className="muted">Caricamento…</div>
+          <div className="card card-pad couple-loading">
+            <div className="muted">Loading your private area…</div>
           </div>
         ) : !event ? (
-          <div className="card card-pad" style={{ marginTop: 12 }}>
-            <div className="h-serif" style={{ fontSize: 18, fontWeight: 900 }}>
-              Nessun evento trovato
-            </div>
-            <div className="muted" style={{ marginTop: 6 }}>
-              Se pensate sia un errore, contattate l’amministrazione della struttura.
-            </div>
+          <div className="card card-pad couple-empty">
+            <div className="h-serif">No event found</div>
+            <p>If you believe this is an error, please contact the property administration.</p>
           </div>
         ) : (
-          <div className="card card-pad" style={{ marginTop: 12 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-              <div>
-                <div className="h-serif" style={{ fontSize: 22, fontWeight: 900 }}>
-                  Il vostro evento
-                </div>
-                <div className="muted" style={{ marginTop: 6 }}>
-                  {event.name} • {fmtDate(event.start_date)} → {fmtDate(event.end_date)}
-                </div>
+          <>
+            <section className="couple-hero">
+              <div className="couple-hero-kicker">Your private stay planner</div>
+              <h1>{event.welcome_title?.trim() || DEFAULT_WELCOME_TITLE}</h1>
+              <div className={`couple-welcome-copy ${welcomeOpen ? "is-open" : ""}`}>
+                {event.welcome_message?.trim() || DEFAULT_WELCOME_MESSAGE}
               </div>
+              <button
+                type="button"
+                className="couple-read-more"
+                onClick={() => setWelcomeOpen((open) => !open)}
+                aria-expanded={welcomeOpen}
+              >
+                {welcomeOpen ? "Show less" : "Read welcome message"}
+              </button>
+            </section>
 
-              <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
-                {(() => {
-                  const b = statusBadge(event.status);
-                  return <span className={b.cls}>Stato: {b.text}</span>;
-                })()}
-
-                <button className="btn" onClick={() => (window.location.href = `/events/${event.id}`)}>
-                  Apri Planner
+            {event.tutorial_video_url && (
+              <section className="video-guide-card" aria-labelledby="video-guide-title">
+                <div className="video-guide-decoration" aria-hidden="true"><span /><span /><span /></div>
+                <div className="video-guide-copy">
+                  <div className="video-guide-kicker">2-minute guide</div>
+                  <h2 id="video-guide-title">Need a little help getting started?</h2>
+                  <p>See how to add guests, record special requirements and assign apartments in just a few simple steps.</p>
+                </div>
+                <button type="button" className="video-guide-button" onClick={() => setVideoOpen(true)}>
+                  <span className="video-guide-play" aria-hidden="true">▶</span>
+                  <span>See How It Works</span>
                 </button>
-              </div>
-            </div>
+              </section>
+            )}
 
-            <div className="muted" style={{ marginTop: 12, fontSize: 13, lineHeight: 1.7 }}>
-              Nel planner potete cliccare sugli appartamenti per vedere foto e dettagli, aggiungere ospiti e gestire le assegnazioni.
-              Quando siete pronti, inviate la lista: dopo l’invio non sarà più modificabile (a meno che l’admin non la riapra).
-            </div>
-          </div>
+            <section className="couple-steps" aria-label="How the planner works">
+              <div><span>1</span><strong>Add guests</strong><small>Enter names and requirements</small></div>
+              <div><span>2</span><strong>Assign apartments</strong><small>Choose the best room for everyone</small></div>
+              <div><span>3</span><strong>Submit the list</strong><small>Send the completed plan to the villa</small></div>
+            </section>
+
+            <section className="event-feature-card">
+              <div className="event-feature-head">
+                <div>
+                  <div className="event-eyebrow">Your event</div>
+                  <h2>{event.name}</h2>
+                  <p>{fmtDate(event.start_date)} <span>—</span> {fmtDate(event.end_date)}</p>
+                </div>
+                {(() => { const b = statusBadge(event.status); return <span className={b.cls}>{b.text}</span>; })()}
+              </div>
+
+              <div className="event-progress-row">
+                <div>
+                  <strong>{guestStats.assigned} of {guestStats.total} guests assigned</strong>
+                  <span>{guestStats.total === 0 ? "Start by adding your first guest" : guestStats.unassigned === 0 ? "Your room plan is complete" : `${guestStats.unassigned} still need an apartment`}</span>
+                </div>
+                <div className="event-progress-value">{guestStats.total ? Math.round((guestStats.assigned / guestStats.total) * 100) : 0}%</div>
+              </div>
+              <div className="event-progress-track" aria-hidden="true">
+                <div style={{ width: `${guestStats.total ? Math.round((guestStats.assigned / guestStats.total) * 100) : 0}%` }} />
+              </div>
+
+              <div className="event-stat-grid">
+                <div><strong>{guestStats.total}</strong><span>Total guests</span></div>
+                <div><strong>{guestStats.assigned}</strong><span>Assigned</span></div>
+                <div><strong>{guestStats.unassigned}</strong><span>Unassigned</span></div>
+              </div>
+
+              {(event.tip_message?.trim() || DEFAULT_TIP_MESSAGE) && (
+                <div className="event-tip">
+                  <span>Tip</span>
+                  <p>{event.tip_message?.trim() || DEFAULT_TIP_MESSAGE}</p>
+                </div>
+              )}
+
+              <button className="event-primary-action" onClick={() => (window.location.href = `/events/${event.id}`)}>
+                Open Room Planner <span aria-hidden="true">→</span>
+              </button>
+            </section>
+          </>
         )}
 
-        {/* FOOTER NOTE */}
-        <div className="muted" style={{ marginTop: 14, fontSize: 12, textAlign: "center" }}>
-          © {new Date().getFullYear()} • Area riservata • Tutti i dati sono gestiti in sicurezza
+        <footer className="couple-footer">
+          © {new Date().getFullYear()} La Dogana · Private area · Your data is handled securely
+        </footer>
+      </main>
+
+      {videoOpen && event?.tutorial_video_url && (
+        <div className="video-modal-backdrop" role="presentation" onMouseDown={() => setVideoOpen(false)}>
+          <div
+            className="video-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="video-modal-title"
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <div className="video-modal-head">
+              <div>
+                <div className="video-guide-kicker">Room planner guide</div>
+                <h2 id="video-modal-title">See How It Works</h2>
+              </div>
+              <button
+                type="button"
+                className="video-modal-close"
+                onClick={() => setVideoOpen(false)}
+                aria-label="Close video"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="video-modal-frame">
+              <iframe
+                src={getVideoEmbedUrl(event.tutorial_video_url)}
+                title="Room planner tutorial"
+                allow="autoplay; encrypted-media; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+
+            <div className="video-modal-foot">
+              <span>Having trouble playing the video?</span>
+              <a href={event.tutorial_video_url} target="_blank" rel="noreferrer">
+                Open it in a new tab
+              </a>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 }
