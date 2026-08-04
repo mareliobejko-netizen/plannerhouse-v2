@@ -550,7 +550,7 @@ textarea{ resize: vertical; }
 .letter{
   height: 100%;
   border-radius: 16px;
-  background: rgba(247,245,240,.96);
+  background: white;
   border: 1px solid rgba(48,64,48,.14);
   box-shadow: 0 16px 32px rgba(0,0,0,.12);
   padding: 12px 12px 10px;
@@ -572,7 +572,7 @@ textarea{ resize: vertical; }
   font-size: 12px;
   font-weight: 800;
   color: var(--olive);
-  background: rgba(192,208,176,.55);
+  background: rgba(246, 248, 245, 0.55); 
   border: 1px solid rgba(48,64,48,.16);
   border-radius: 999px;
   padding: 6px 10px;
