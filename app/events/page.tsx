@@ -214,7 +214,7 @@ export default function EventsHomePage() {
           if (guestsErr) throw new Error(guestsErr.message);
 
           const total = guests?.length ?? 0;
-          const assigned = guests?.filter((guest) => Boolean(guest.apartment_id)).length ?? 0;
+          const assigned = guests?.filter((guest: Record<string, any>) => Boolean(guest.apartment_id)).length ?? 0;
           setGuestStats({ total, assigned, unassigned: Math.max(0, total - assigned) });
         }
       } catch (e: any) {

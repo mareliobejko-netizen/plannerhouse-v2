@@ -9,9 +9,10 @@ type Filter =
 
 type Order = { column: string; ascending: boolean };
 type Operation = "select" | "insert" | "update" | "delete";
-type ApiResult<T = any> = { data: T | null; error: { message: string } | null };
+type DbRow = Record<string, any>;
+type ApiResult<T = DbRow[]> = { data: T | null; error: { message: string } | null };
 
-class NeonQueryBuilder<T = any> implements PromiseLike<ApiResult<T>> {
+class NeonQueryBuilder<T = DbRow[]> implements PromiseLike<ApiResult<T>> {
   private operation: Operation = "select";
   private columns = "*";
   private payload: unknown = null;
@@ -40,7 +41,10 @@ class NeonQueryBuilder<T = any> implements PromiseLike<ApiResult<T>> {
   or(expression: string) { this.filters.push({ op: "or", expression }); return this; }
   order(column: string, options?: { ascending?: boolean }) { this.orderBy = { column, ascending: options?.ascending !== false }; return this; }
   limit(value: number) { this.rowLimit = value; return this; }
-  single() { this.wantsSingle = true; return this; }
+  single(): NeonQueryBuilder<DbRow> {
+    this.wantsSingle = true;
+    return this as unknown as NeonQueryBuilder<DbRow>;
+  }
 
   private async execute(): Promise<ApiResult<T>> {
     try {
@@ -137,6 +141,6 @@ const authCompat = {
 // data comes from Neon and auth comes from Better Auth. No Supabase runtime service is used.
 export const supabase = {
   auth: authCompat,
-  from: (table: string) => new NeonQueryBuilder(table),
+  from: (table: string) => new NeonQueryBuilder<DbRow[]>(table),
   rpc,
 };
