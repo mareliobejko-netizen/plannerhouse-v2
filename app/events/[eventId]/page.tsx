@@ -281,11 +281,13 @@ export default function EventPlannerPage() {
     const response = await fetch(`/api/photos?apartmentId=${encodeURIComponent(apartmentId)}`, { credentials: "same-origin" });
     const json = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(json?.error || "Unable to load apartment photos");
-    const urls = (json.photos ?? []).map((photo: { url: string }) => photo.url).filter(Boolean);
+    const urls: string[] = (json.photos ?? [])
+      .map((photo: { url: string }) => photo.url)
+      .filter((url: string): url is string => Boolean(url));
 
     setPhotoCache((prev) => ({ ...prev, [apartmentId]: urls }));
     setPhotoUrls(urls);
-    urls.slice(0, 5).forEach((u) => {
+    urls.slice(0, 5).forEach((u: string) => {
       const img = new Image();
       img.src = u;
     });
