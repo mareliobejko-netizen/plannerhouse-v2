@@ -62,11 +62,10 @@ export async function POST(req: Request) {
 
     try {
       await sql`
-        INSERT INTO public.profiles (id, email, is_admin, full_name)
-        VALUES (${newUserId}::uuid, ${email}, false, ${fullName || null})
+        INSERT INTO public.profiles (id, is_admin, full_name)
+        VALUES (${newUserId}::uuid, false, ${fullName || null})
         ON CONFLICT (id) DO UPDATE
-        SET email = EXCLUDED.email,
-            full_name = EXCLUDED.full_name
+        SET full_name = EXCLUDED.full_name
       `;
 
       const eventRows = await sql`
