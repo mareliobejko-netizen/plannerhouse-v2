@@ -37,7 +37,7 @@ export async function GET(req: Request) {
         p.is_admin,
         COALESCE(p.password_prompt_pending, false) AS password_prompt_pending
       FROM "user" u
-      LEFT JOIN public.profiles p ON p.id::text = u.id
+      LEFT JOIN public.profiles p ON p.id::text = u.id::text
       ORDER BY u."createdAt" DESC
     `;
 
