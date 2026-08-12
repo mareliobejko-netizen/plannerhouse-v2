@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { requireAdminOrRedirect } from "@/lib/requireAdmin";
+import PortalTopbar from "@/app/components/PortalTopbar";
 
 type OccRow = {
   event_id: string;
@@ -446,7 +447,7 @@ ${apartmentSections}
   if (loading || !ev) {
     return (
       <>
-        <div className="topbar"><div className="green-line" /><div className="topbar-inner"><img src="/logo.svg" className="logo" alt="La Dogana" /></div><div className="green-line" /></div>
+        <PortalTopbar variant="admin" active="events" />
         <div className="container"><div className="card card-pad">{err || "Loading event…"}</div></div>
       </>
     );
@@ -454,18 +455,12 @@ ${apartmentSections}
 
   return (
     <>
-      <div className="topbar">
-        <div className="green-line" />
-        <div className="topbar-inner">
-          <div className="topbar-left"><img src="/logo.svg" className="logo" alt="La Dogana" /></div>
-          <div className="admin-event-top-actions">
-            <span className="badge draft">Admin</span>
-            <button className="btn-ghost" onClick={() => (window.location.href = "/admin/events")}>← Dashboard</button>
-            <button className="btn-ghost" onClick={exportPdf}>Export PDF</button>
-            <button className="btn" onClick={exportCsv}>Export CSV</button>
-          </div>
-        </div>
-        <div className="green-line" />
+      <PortalTopbar variant="admin" active="events" />
+
+      <div className="portal-page-actions admin-event-export-actions">
+        <button className="portal-page-link" onClick={() => (window.location.href = "/admin/events")}>← Back to dashboard</button>
+        <button className="btn-ghost" onClick={exportPdf}>Export PDF</button>
+        <button className="btn" onClick={exportCsv}>Export CSV</button>
       </div>
 
       <main className="container admin-event-page">
