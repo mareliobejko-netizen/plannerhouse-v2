@@ -111,6 +111,16 @@ export default function EventPlannerPage() {
   const [photoIndex, setPhotoIndex] = useState(0);
   const [photoCache, setPhotoCache] = useState<Record<string, string[]>>({});
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
+
+  const showLightboxPhoto = (index: number) => {
+    if (photoUrls.length === 0) return;
+    const nextIndex = (index + photoUrls.length) % photoUrls.length;
+    setPhotoIndex(nextIndex);
+    setLightboxPhoto(photoUrls[nextIndex]);
+  };
+
+  const showPreviousLightboxPhoto = () => showLightboxPhoto(photoIndex - 1);
+  const showNextLightboxPhoto = () => showLightboxPhoto(photoIndex + 1);
   const [modalGuestSearch, setModalGuestSearch] = useState("");
   const [forgottenGuestOpen, setForgottenGuestOpen] = useState(false);
 
@@ -136,6 +146,25 @@ export default function EventPlannerPage() {
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [mailStage, setMailStage] = useState<"open" | "closing" | "closed">("open");
+
+  useEffect(() => {
+    if (!lightboxPhoto) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        showPreviousLightboxPhoto();
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        showNextLightboxPhoto();
+      } else if (event.key === "Escape") {
+        setLightboxPhoto(null);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [lightboxPhoto, photoIndex, photoUrls]);
 
   const statusMap = useMemo(() => {
     const m: Record<string, { status: Status; capacity: number; guests: number }> = {};
@@ -1199,7 +1228,7 @@ export default function EventPlannerPage() {
                       <div className="muted" style={{ marginTop: 10 }}>No photos uploaded.</div>
                     ) : (
                       <>
-                        <button className="photo-hero photo-hero-button" style={{ marginTop: 10 }} onClick={() => setLightboxPhoto(photoUrls[photoIndex])} aria-label="Enlarge apartment photo">
+                        <button className="photo-hero photo-hero-button" style={{ marginTop: 10 }} onClick={() => showLightboxPhoto(photoIndex)} aria-label="Enlarge apartment photo">
                           <img src={photoUrls[photoIndex]} alt="Apartment photo" />
                           <span className="photo-zoom-hint">↗ Enlarge photo</span>
                         </button>
@@ -1343,9 +1372,35 @@ export default function EventPlannerPage() {
       </div>
 
       {lightboxPhoto && (
-        <div className="photo-lightbox" onClick={() => setLightboxPhoto(null)}>
+        <div className="photo-lightbox" role="dialog" aria-modal="true" aria-label="Apartment photo viewer">
           <button className="photo-lightbox-close" onClick={() => setLightboxPhoto(null)}>Close</button>
-          <img src={lightboxPhoto} alt="Apartment enlarged" onClick={(e) => e.stopPropagation()} />
+
+          {photoUrls.length > 1 && (
+            <>
+              <button
+                className="photo-lightbox-nav photo-lightbox-prev"
+                onClick={showPreviousLightboxPhoto}
+                aria-label="Previous photo"
+              >
+                <span aria-hidden>‹</span>
+              </button>
+              <button
+                className="photo-lightbox-nav photo-lightbox-next"
+                onClick={showNextLightboxPhoto}
+                aria-label="Next photo"
+              >
+                <span aria-hidden>›</span>
+              </button>
+            </>
+          )}
+
+          <div className="photo-lightbox-stage">
+            <img src={lightboxPhoto} alt={`Apartment photo ${photoIndex + 1}`} />
+          </div>
+
+          {photoUrls.length > 1 && (
+            <div className="photo-lightbox-counter">{photoIndex + 1} / {photoUrls.length}</div>
+          )}
         </div>
       )}
 
