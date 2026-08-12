@@ -643,6 +643,16 @@ export default function EventPlannerPage() {
           return;
         }
 
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("is_admin,password_prompt_pending")
+          .eq("id", u.user.id)
+          .single();
+        if (!profile?.is_admin && profile?.password_prompt_pending) {
+          window.location.href = "/first-login";
+          return;
+        }
+
         const { data: occData, error: occErr } = await supabase
           .from("apartment_occupancy")
           .select("event_id,apartment_id,capacity,guests_count,structure,floor")
@@ -734,6 +744,7 @@ export default function EventPlannerPage() {
             </button>
 
             <button className="btn-ghost" onClick={() => (window.location.href = "/events")}>Home Page</button>
+            <button className="btn-ghost" onClick={() => (window.location.href = "/account")}>Account</button>
             <button className="btn-ghost" onClick={async () => { await supabase.auth.signOut(); window.location.href = "/login"; }}>Logout</button>
           </div>
         </div>
@@ -1100,10 +1111,10 @@ export default function EventPlannerPage() {
               </section>
 
               <section className="card card-pad planner-feedback-card">
-                <div className="planner-section-kicker">Your experience</div>
-                <div className="h-serif" style={{ fontSize: 22, fontWeight: 700, marginTop: 4 }}>How was PlannerHouse?</div>
+                <div className="planner-section-kicker">Guest Portal Feedback</div>
+                <div className="h-serif" style={{ fontSize: 22, fontWeight: 700, marginTop: 4 }}>How was your experience?</div>
                 <p className="planner-section-copy" style={{ marginTop: 6 }}>Optional — your feedback helps us make the portal even easier for future couples.</p>
-                <div className="planner-feedback-options" role="group" aria-label="PlannerHouse feedback">
+                <div className="planner-feedback-options" role="group" aria-label="Guest portal feedback">
                   {[
                     { value: "loved", emoji: "😍", label: "Loved it" },
                     { value: "good", emoji: "🙂", label: "It was good" },

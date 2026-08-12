@@ -536,14 +536,14 @@ ${apartmentSections}
 
             {(ev.couple_note || ev.portal_feedback_rating || ev.portal_feedback_comment) && (
               <div className="card card-pad admin-event-panel admin-event-wide-panel admin-couple-message-panel">
-                <div className="admin-event-panel-head"><div><span>From the couple</span><h2>Final note & PlannerHouse feedback</h2></div></div>
+                <div className="admin-event-panel-head"><div><span>From the couple</span><h2>Final note & guest portal feedback</h2></div></div>
                 <div className="admin-couple-message-grid">
                   <div>
                     <strong>Note for La Dogana</strong>
                     <p>{ev.couple_note || "No final note was added."}</p>
                   </div>
                   <div>
-                    <strong>PlannerHouse experience</strong>
+                    <strong>Guest Portal Feedback</strong>
                     <div className="admin-feedback-rating">
                       {ev.portal_feedback_rating === "loved" ? "😍 Loved it" : ev.portal_feedback_rating === "good" ? "🙂 It was good" : ev.portal_feedback_rating === "could_be_better" ? "😕 Could be better" : "No rating"}
                     </div>

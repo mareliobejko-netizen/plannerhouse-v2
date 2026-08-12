@@ -36,6 +36,31 @@ type EventStats = {
 type StatusFilter = "all" | "draft" | "submitted" | "final" | "upcoming" | "past";
 type SortMode = "nearest" | "created" | "submitted";
 
+type CreatedInvite = {
+  fullName: string;
+  email: string;
+  password: string;
+  eventName: string;
+  portalUrl: string;
+};
+
+function generatePassword(length = 16) {
+  const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  const lower = "abcdefghijkmnopqrstuvwxyz";
+  const digits = "23456789";
+  const symbols = "!@#$%";
+  const all = upper + lower + digits + symbols;
+  const required = [upper, lower, digits, symbols].map((set) => set[crypto.getRandomValues(new Uint32Array(1))[0] % set.length]);
+  const chars = [...required];
+  const random = crypto.getRandomValues(new Uint32Array(Math.max(0, length - required.length)));
+  for (const value of random) chars.push(all[value % all.length]);
+  for (let i = chars.length - 1; i > 0; i--) {
+    const j = crypto.getRandomValues(new Uint32Array(1))[0] % (i + 1);
+    [chars[i], chars[j]] = [chars[j], chars[i]];
+  }
+  return chars.join("");
+}
+
 function parseDateOnly(value: string | null, endOfDay = false) {
   if (!value) return null;
 
@@ -91,9 +116,13 @@ export default function AdminEventsPage() {
   const [newTutorialVideoUrl, setNewTutorialVideoUrl] = useState("");
   const [createMsg, setCreateMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [creating, setCreating] = useState(false);
+  const [createdInvite, setCreatedInvite] = useState<CreatedInvite | null>(null);
+  const [copyMsg, setCopyMsg] = useState<string | null>(null);
 
   function resetCreateForm() {
     setCreateMsg(null);
+    setCreatedInvite(null);
+    setCopyMsg(null);
     setNewEmail("");
     setNewPass("");
     setNewName("");
@@ -181,15 +210,64 @@ export default function AdminEventsPage() {
       if (!res.ok) throw new Error(json?.error ?? "Creation error");
 
       setCreateMsg({ type: "ok", text: "User and event created successfully." });
+      setCreatedInvite({
+        fullName: newName.trim(),
+        email,
+        password,
+        eventName,
+        portalUrl: `${window.location.origin}/login`,
+      });
       await load();
-      setTimeout(() => {
-        resetCreateForm();
-        setCreateOpen(false);
-      }, 900);
     } catch (e: any) {
       setCreateMsg({ type: "err", text: e?.message ?? "Creation error" });
     } finally {
       setCreating(false);
+    }
+  }
+
+  async function deleteEventFromDashboard(event: EventRow) {
+    if (!confirm(`Delete \"${event.name}\" permanently? This also deletes the guest list and apartment assignments for this event.`)) return;
+    try {
+      const response = await fetch(`/api/admin/events/${encodeURIComponent(event.id)}`, {
+        method: "DELETE",
+        credentials: "same-origin",
+      });
+      const json = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(json?.error ?? "Unable to delete event");
+      await load();
+    } catch (error: any) {
+      setErr(error?.message ?? "Unable to delete event");
+    }
+  }
+
+  function invitationMessage(invite: CreatedInvite) {
+    const greetingName = invite.fullName || "there";
+    return `Hi ${greetingName},
+
+La Dogana has created your private guest planning area for ${invite.eventName}.
+
+You can access the La Dogana Guest Portal here:
+${invite.portalUrl}
+
+Email: ${invite.email}
+Temporary password: ${invite.password}
+
+From your private area, you can add your guests, assign apartments, provide important information and submit your final guest list directly to La Dogana.
+
+On your first login, you can choose whether to keep this password or create a personal one.
+
+We look forward to welcoming you to La Dogana.
+
+La Dogana Team`;
+  }
+
+  async function copyText(value: string, label: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopyMsg(`${label} copied.`);
+      setTimeout(() => setCopyMsg(null), 1800);
+    } catch {
+      setCopyMsg("Copy failed. Select the text manually.");
     }
   }
 
@@ -258,6 +336,7 @@ export default function AdminEventsPage() {
           </div>
           <div className="admin-top-actions">
             <button className="btn admin-create-top" onClick={() => setCreateOpen(true)}>＋ Create new event</button>
+            <button className="btn-ghost" onClick={() => (window.location.href = "/admin/users")}>User management</button>
             <button className="btn-ghost" onClick={() => (window.location.href = "/events")}>Client area</button>
             <button className="btn-ghost" onClick={async () => { await supabase.auth.signOut(); window.location.href = "/login"; }}>Logout</button>
           </div>
@@ -272,10 +351,16 @@ export default function AdminEventsPage() {
             <h1>Welcome back</h1>
             <p>Here is what needs your attention today.</p>
           </div>
-          <button className="admin-hero-create" onClick={() => setCreateOpen(true)}>
-            <span>＋</span>
-            <div><strong>Create new event</strong><small>Create the couple account and their private area</small></div>
-          </button>
+          <div className="admin-hero-actions">
+            <button className="admin-hero-create" onClick={() => setCreateOpen(true)}>
+              <span>＋</span>
+              <div><strong>Create new event</strong><small>Create the couple account and their private area</small></div>
+            </button>
+            <button className="admin-hero-create secondary" onClick={() => (window.location.href = "/admin/users")}>
+              <span>◎</span>
+              <div><strong>Manage users</strong><small>Edit login details, passwords and old accounts</small></div>
+            </button>
+          </div>
         </section>
 
         {err && <div className="card card-pad admin-alert error">{err}</div>}
@@ -372,6 +457,7 @@ export default function AdminEventsPage() {
                     </div>
 
                     <div className="admin-event-actions">
+                      <button className="btn-ghost admin-danger-button" onClick={() => deleteEventFromDashboard(ev)}>Delete</button>
                       <button className="btn-ghost" onClick={() => (window.location.href = `/events/${ev.id}`)}>Client view</button>
                       <button className="btn" onClick={() => (window.location.href = `/admin/events/${ev.id}`)}>Open event →</button>
                     </div>
@@ -394,12 +480,36 @@ export default function AdminEventsPage() {
             <div className="admin-create-body">
               {createMsg && <div className={`admin-create-message ${createMsg.type}`}>{createMsg.text}</div>}
 
+              {createdInvite && (
+                <div className="admin-invite-generated">
+                  <div className="admin-invite-generated-head">
+                    <div>
+                      <span>Ready to copy</span>
+                      <strong>Guest invitation message</strong>
+                    </div>
+                    <div className="admin-invite-actions">
+                      <button type="button" className="btn-ghost btn-sm" onClick={() => copyText(`Email: ${createdInvite.email}\nPassword: ${createdInvite.password}\nPortal: ${createdInvite.portalUrl}`, "Credentials")}>Copy credentials</button>
+                      <button type="button" className="btn btn-sm" onClick={() => copyText(invitationMessage(createdInvite), "Message")}>Copy message</button>
+                    </div>
+                  </div>
+                  <textarea className="input admin-invite-textarea" rows={13} readOnly value={invitationMessage(createdInvite)} />
+                  <div className="admin-invite-note"><strong>No email has been sent.</strong> This message was generated automatically only to help the admin. Copy it and paste it into the email you want to send.</div>
+                  {copyMsg && <div className="admin-copy-message">{copyMsg}</div>}
+                </div>
+              )}
+
               <div className="admin-create-section">
                 <div className="admin-create-section-title"><span>1</span><div><strong>Couple account</strong><small>Login details for the private area</small></div></div>
                 <div className="admin-form-grid">
                   <div><div className="label">Full name (optional)</div><input className="input" value={newName} onChange={(e) => setNewName(e.target.value)} disabled={creating} /></div>
                   <div><div className="label">Email</div><input className="input" type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} disabled={creating} /></div>
-                  <div><div className="label">Temporary password</div><input className="input" type="password" value={newPass} onChange={(e) => setNewPass(e.target.value)} disabled={creating} /></div>
+                  <div>
+                    <div className="label">Temporary password</div>
+                    <div className="admin-password-field">
+                      <input className="input" value={newPass} onChange={(e) => setNewPass(e.target.value)} disabled={creating} placeholder="Enter or generate a password" />
+                      <button type="button" className="btn-ghost admin-generate-password" onClick={() => setNewPass(generatePassword())} disabled={creating}>Generate</button>
+                    </div>
+                  </div>
                   <div><div className="label">Event name</div><input className="input" value={newEventName} onChange={(e) => setNewEventName(e.target.value)} disabled={creating} placeholder="e.g. Marco & Giulia Wedding" /></div>
                 </div>
               </div>
@@ -424,8 +534,8 @@ export default function AdminEventsPage() {
             </div>
 
             <div className="admin-create-footer">
-              <button className="btn-ghost" onClick={resetCreateForm} disabled={creating}>Clear form</button>
-              <div><button className="btn-ghost" onClick={() => setCreateOpen(false)} disabled={creating}>Cancel</button><button className="btn" onClick={createUserAndEvent} disabled={creating}>{creating ? "Creating…" : "Create user & event"}</button></div>
+              <button className="btn-ghost" onClick={resetCreateForm} disabled={creating}>{createdInvite ? "Create another" : "Clear form"}</button>
+              <div><button className="btn-ghost" onClick={() => setCreateOpen(false)} disabled={creating}>{createdInvite ? "Close" : "Cancel"}</button>{!createdInvite && <button className="btn" onClick={createUserAndEvent} disabled={creating}>{creating ? "Creating…" : "Create user & event"}</button>}</div>
             </div>
           </div>
         </div>

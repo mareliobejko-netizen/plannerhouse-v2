@@ -282,3 +282,9 @@ See `NEON_PHASE3_STORAGE.md` for the Supabase Storage -> Cloudinary migration.
 
 ## Step 3 final review migration
 Before deploying the version with couple notes and PlannerHouse feedback, run `public/add_event_final_review_fields.sql` once on the Neon database.
+
+## 2026-08 La Dogana user management update
+
+See `LA_DOGANA_USER_MANAGEMENT.md`.
+
+Before deploying, run `public/add_user_management_fields.sql` on Neon once.

@@ -2142,3 +2142,205 @@ textarea{ resize: vertical; }
   font-size: 13px;
 }
 @media (max-width: 760px) { .admin-couple-message-grid { grid-template-columns: 1fr; } }
+
+/* =========================================================
+   La Dogana Guest Portal — account & admin user management
+   ========================================================= */
+.admin-hero-actions {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.admin-hero-create.secondary {
+  background: rgba(255,255,255,.72);
+  color: #304030;
+  border: 1px solid rgba(48,64,48,.14);
+}
+.admin-hero-create.secondary:hover { background: #fff; }
+
+.admin-password-field {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  gap: 8px;
+  align-items: stretch;
+}
+.admin-generate-password { white-space: nowrap; }
+
+.admin-invite-generated {
+  border: 1px solid rgba(48,64,48,.14);
+  border-radius: 18px;
+  padding: 16px;
+  background: linear-gradient(145deg, rgba(192,208,176,.18), rgba(247,245,240,.72));
+  margin-bottom: 18px;
+}
+.admin-invite-generated-head {
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.admin-invite-generated-head > div:first-child { display: grid; gap: 2px; }
+.admin-invite-generated-head span {
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  font-size: 10px;
+  font-weight: 800;
+  color: #738073;
+}
+.admin-invite-generated-head strong { color: #304030; font-size: 17px; }
+.admin-invite-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.admin-invite-textarea {
+  width: 100%;
+  min-height: 255px;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.52;
+  background: rgba(255,255,255,.9);
+}
+.admin-invite-note {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(48,64,48,.07);
+  color: #5f6c5f;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.admin-copy-message { margin-top: 8px; font-size: 12px; color: #304030; font-weight: 700; }
+
+.first-login-shell { max-width: 760px; padding-top: 34px; padding-bottom: 50px; }
+.first-login-card { padding: clamp(24px, 5vw, 44px); text-align: center; }
+.first-login-icon { font-size: 34px; margin-bottom: 8px; }
+.first-login-card h1 { font-size: clamp(29px, 5vw, 42px); line-height: 1.07; margin: 8px auto 0; max-width: 640px; }
+.first-login-intro { max-width: 590px; margin: 12px auto 22px; line-height: 1.55; }
+.first-login-form { display: grid; gap: 14px; text-align: left; margin-top: 18px; }
+.first-login-password-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.first-login-form .btn { justify-self: center; min-width: 220px; margin-top: 4px; }
+.first-login-divider { display: flex; align-items: center; gap: 12px; color: #8a928a; margin: 22px 0 14px; font-size: 12px; }
+.first-login-divider::before,.first-login-divider::after { content: ""; height: 1px; flex: 1; background: rgba(48,64,48,.12); }
+.first-login-keep { min-width: 220px; }
+.first-login-footnote { font-size: 12px; margin: 10px 0 0; }
+
+.account-shell { padding-top: 30px; padding-bottom: 50px; }
+.account-hero { margin-bottom: 18px; }
+.account-hero h1 { font-size: 38px; margin: 4px 0 4px; }
+.account-grid { display: grid; grid-template-columns: .8fr 1.2fr; gap: 18px; align-items: start; }
+.account-readonly-value { margin-top: 6px; padding: 11px 12px; border-radius: 12px; background: rgba(48,64,48,.055); color: #304030; font-weight: 650; }
+.account-helper { margin: 16px 0 0; font-size: 12px; line-height: 1.45; }
+.account-password-form { display: grid; gap: 12px; margin-top: 14px; }
+.account-password-form .btn { justify-self: start; }
+
+.admin-users-page { padding-top: 24px; padding-bottom: 60px; }
+.admin-users-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+.admin-users-hero h1 { margin: 3px 0 5px; font-size: 40px; }
+.admin-users-hero p { margin: 0; color: #6e786e; }
+.admin-users-toolbar {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) auto;
+  align-items: end;
+  gap: 18px;
+  margin-bottom: 14px;
+}
+.admin-users-count { min-width: 120px; text-align: right; display: grid; }
+.admin-users-count strong { font-size: 28px; line-height: 1; color: #304030; }
+.admin-users-count span { margin-top: 4px; font-size: 12px; color: #768176; }
+.admin-user-list { display: grid; gap: 10px; }
+.admin-user-card {
+  display: grid;
+  grid-template-columns: auto minmax(180px, 1fr) minmax(180px, .9fr) auto;
+  gap: 14px;
+  align-items: center;
+  background: #fff;
+  border: 1px solid rgba(48,64,48,.11);
+  border-radius: 18px;
+  padding: 14px 16px;
+  box-shadow: 0 9px 24px rgba(48,64,48,.055);
+}
+.admin-user-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: rgba(192,208,176,.35);
+  color: #304030;
+  font-weight: 900;
+  font-size: 18px;
+}
+.admin-user-main { min-width: 0; display: grid; gap: 3px; }
+.admin-user-name-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.admin-user-main > span { color: #667166; overflow: hidden; text-overflow: ellipsis; }
+.admin-user-main small { color: #8a928a; }
+.admin-user-role { padding: 3px 7px; border-radius: 999px; background: rgba(48,64,48,.07); color: #5f6b5f; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+.admin-user-role.admin { background: rgba(192,208,176,.38); color: #304030; }
+.admin-user-events-mini { min-width: 0; display: grid; gap: 3px; }
+.admin-user-events-mini span { font-size: 12px; color: #667166; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.admin-user-modal {
+  width: min(880px, calc(100vw - 28px));
+  max-height: calc(100vh - 28px);
+  overflow: hidden;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 28px 90px rgba(33,45,33,.26);
+  display: flex;
+  flex-direction: column;
+}
+.admin-user-modal-body { padding: 0 22px 24px; overflow-y: auto; }
+.admin-user-modal-body .admin-create-section { margin-top: 16px; }
+.admin-user-modal-body .admin-create-section > .btn { margin-top: 12px; }
+.admin-user-event-list { display: grid; gap: 8px; margin-top: 10px; }
+.admin-user-event-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid rgba(48,64,48,.1);
+  border-radius: 13px;
+  padding: 11px 12px;
+}
+.admin-user-event-row > div:first-child { display: grid; gap: 3px; }
+.admin-user-event-row span { font-size: 12px; color: #758075; }
+.admin-user-event-row > div:last-child { display: flex; gap: 7px; flex-wrap: wrap; }
+.admin-danger-button { color: #a23c37 !important; border-color: rgba(162,60,55,.2) !important; }
+.admin-danger-button:hover { background: rgba(162,60,55,.06) !important; }
+.admin-danger-zone {
+  margin-top: 20px;
+  padding: 16px;
+  border: 1px solid rgba(162,60,55,.18);
+  border-radius: 16px;
+  background: rgba(162,60,55,.035);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+}
+.admin-danger-zone p { margin: 4px 0 0; color: #7c6a68; font-size: 12px; }
+
+@media (max-width: 850px) {
+  .admin-user-card { grid-template-columns: auto 1fr auto; }
+  .admin-user-events-mini { display: none; }
+  .account-grid { grid-template-columns: 1fr; }
+  .first-login-password-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 650px) {
+  .admin-users-hero { align-items: stretch; flex-direction: column; }
+  .admin-users-toolbar { grid-template-columns: 1fr; }
+  .admin-users-count { text-align: left; }
+  .admin-user-card { grid-template-columns: auto 1fr; }
+  .admin-user-card > .btn { grid-column: 1 / -1; width: 100%; }
+  .admin-password-field { grid-template-columns: 1fr; }
+  .admin-invite-generated-head { align-items: stretch; flex-direction: column; }
+  .admin-invite-actions { justify-content: flex-start; }
+  .admin-user-event-row, .admin-danger-zone { align-items: stretch; flex-direction: column; }
+  .admin-user-event-row > div:last-child { width: 100%; }
+}

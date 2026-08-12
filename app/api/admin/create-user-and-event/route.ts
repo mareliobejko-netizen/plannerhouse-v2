@@ -32,6 +32,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Not allowed" }, { status: 403 });
     }
 
+    // Keep Better Auth's admin role aligned with the app's profiles.is_admin flag.
+    await sql`
+      UPDATE "user"
+      SET role = 'admin', "updatedAt" = now()
+      WHERE id = ${adminId} AND role IS DISTINCT FROM 'admin'
+    `;
+
     const body = (await req.json()) as Body;
     const email = (body.email || "").trim().toLowerCase();
     const password = body.password || "";
@@ -62,10 +69,11 @@ export async function POST(req: Request) {
 
     try {
       await sql`
-        INSERT INTO public.profiles (id, is_admin, full_name)
-        VALUES (${newUserId}::uuid, false, ${fullName || null})
+        INSERT INTO public.profiles (id, is_admin, full_name, password_prompt_pending)
+        VALUES (${newUserId}::uuid, false, ${fullName || null}, true)
         ON CONFLICT (id) DO UPDATE
-        SET full_name = EXCLUDED.full_name
+        SET full_name = EXCLUDED.full_name,
+            password_prompt_pending = true
       `;
 
       const eventRows = await sql`

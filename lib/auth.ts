@@ -36,6 +36,7 @@ const allowedHosts = Array.from(
 );
 
 export const auth = betterAuth({
+  appName: "La Dogana Guest Portal",
   database: pool,
   secret: process.env.BETTER_AUTH_SECRET,
   baseURL: {

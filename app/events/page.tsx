@@ -192,13 +192,17 @@ export default function EventsHomePage() {
         // admin? -> admin dashboard
         const { data: prof, error: profErr } = await supabase
           .from("profiles")
-          .select("is_admin")
+          .select("is_admin,password_prompt_pending")
           .eq("id", uid)
           .single();
 
         if (profErr) throw new Error(profErr.message);
         if (prof?.is_admin) {
           window.location.href = "/admin/events";
+          return;
+        }
+        if (prof?.password_prompt_pending) {
+          window.location.href = "/first-login";
           return;
         }
 
@@ -258,6 +262,8 @@ export default function EventsHomePage() {
   </span>
 </a>
 
+
+            <button className="btn-ghost" onClick={() => (window.location.href = "/account")}>Account</button>
 
             <button
               className="btn-ghost"

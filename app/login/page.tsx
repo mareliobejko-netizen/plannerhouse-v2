@@ -17,8 +17,12 @@ export default function LoginPage() {
       if (!data.session) return;
 
       const uid = data.session.user.id;
-      const { data: prof } = await supabase.from("profiles").select("is_admin").eq("id", uid).single();
+      const { data: prof } = await supabase.from("profiles").select("is_admin,password_prompt_pending").eq("id", uid).single();
       const isAdmin = !!prof?.is_admin;
+      if (!isAdmin && prof?.password_prompt_pending) {
+        window.location.href = "/first-login";
+        return;
+      }
 
       const next = new URLSearchParams(window.location.search).get("next");
       if (next) {
@@ -55,13 +59,17 @@ export default function LoginPage() {
       // leggi profilo e redireziona
       const { data: prof, error: profErr } = await supabase
         .from("profiles")
-        .select("is_admin")
+        .select("is_admin,password_prompt_pending")
         .eq("id", uid)
         .single();
 
       if (profErr) throw new Error(profErr.message);
 
       const isAdmin = !!prof?.is_admin;
+      if (!isAdmin && prof?.password_prompt_pending) {
+        window.location.href = "/first-login";
+        return;
+      }
 
       // se esiste ?next=... vai lì, altrimenti routing standard
       const next = new URLSearchParams(window.location.search).get("next");
