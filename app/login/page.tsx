@@ -87,7 +87,8 @@ export default function LoginPage() {
       <div className="topbar">
         <div className="topbar-inner">
           <div className="topbar-left">
-            <img src="/logo.svg" alt="Villa logo" className="logo" />
+            <img src="/logo.svg" alt="La Dogana" className="logo" />
+            <span className="admin-brand-label">Guest Portal</span>
           </div>
         </div>
         <div className="green-line" />
@@ -95,11 +96,12 @@ export default function LoginPage() {
 
       <div className="container" style={{ maxWidth: 560 }}>
         <div className="card card-pad" style={{ marginTop: 18 }}>
-          <div className="h-serif" style={{ fontSize: 28, fontWeight: 900 }}>
-            Sign in
+          <div className="planner-section-kicker">La Dogana · Guest Portal</div>
+          <div className="h-serif" style={{ fontSize: 30, fontWeight: 900, marginTop: 6 }}>
+            Welcome back
           </div>
           <div className="muted" style={{ marginTop: 6 }}>
-            Enter the credentials you received.
+            Sign in with the credentials provided by La Dogana.
           </div>
 
           {err && (
@@ -148,7 +150,7 @@ export default function LoginPage() {
             </button>
 
             <div className="muted" style={{ fontSize: 12 }}>
-              Administrators will be taken to the dashboard. Couples will be taken to the planner.
+              Couples will enter their private guest portal. Administrators will be taken to the management dashboard.
             </div>
           </form>
         </div>

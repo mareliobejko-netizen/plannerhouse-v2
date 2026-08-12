@@ -725,7 +725,8 @@ export default function EventPlannerPage() {
         <div className="green-line" />
         <div className="topbar-inner">
           <div className="topbar-left">
-            <img src="/logo.svg" className="logo" alt="Villa logo" />
+            <img src="/logo.svg" className="logo" alt="La Dogana" />
+            <span className="admin-brand-label">Guest Portal</span>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>

@@ -235,7 +235,8 @@ export default function EventsHomePage() {
       <div className="topbar">
         <div className="topbar-inner">
           <div className="topbar-left">
-            <img src="/logo.svg" alt="Villa logo" className="logo" />
+            <img src="/logo.svg" alt="La Dogana" className="logo" />
+            <span className="admin-brand-label">Guest Portal</span>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
@@ -296,7 +297,7 @@ export default function EventsHomePage() {
         ) : (
           <>
             <section className="couple-hero">
-              <div className="couple-hero-kicker">Your private stay planner</div>
+              <div className="couple-hero-kicker">La Dogana Guest Portal</div>
               <h1>{event.welcome_title?.trim() || DEFAULT_WELCOME_TITLE}</h1>
               <div className={`couple-welcome-copy ${welcomeOpen ? "is-open" : ""}`}>
                 {event.welcome_message?.trim() || DEFAULT_WELCOME_MESSAGE}
@@ -374,7 +375,7 @@ export default function EventsHomePage() {
         )}
 
         <footer className="couple-footer">
-          © {new Date().getFullYear()} La Dogana · Private area · Your data is handled securely
+          © {new Date().getFullYear()} La Dogana · Guest Portal · Private & secure
         </footer>
       </main>
 

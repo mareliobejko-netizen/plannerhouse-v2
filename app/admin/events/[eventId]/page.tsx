@@ -446,7 +446,7 @@ ${apartmentSections}
   if (loading || !ev) {
     return (
       <>
-        <div className="topbar"><div className="green-line" /><div className="topbar-inner"><img src="/logo.svg" className="logo" alt="Villa logo" /></div><div className="green-line" /></div>
+        <div className="topbar"><div className="green-line" /><div className="topbar-inner"><img src="/logo.svg" className="logo" alt="La Dogana" /></div><div className="green-line" /></div>
         <div className="container"><div className="card card-pad">{err || "Loading event…"}</div></div>
       </>
     );
@@ -457,7 +457,7 @@ ${apartmentSections}
       <div className="topbar">
         <div className="green-line" />
         <div className="topbar-inner">
-          <div className="topbar-left"><img src="/logo.svg" className="logo" alt="Villa logo" /></div>
+          <div className="topbar-left"><img src="/logo.svg" className="logo" alt="La Dogana" /></div>
           <div className="admin-event-top-actions">
             <span className="badge draft">Admin</span>
             <button className="btn-ghost" onClick={() => (window.location.href = "/admin/events")}>← Dashboard</button>

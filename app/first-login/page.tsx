@@ -107,7 +107,7 @@ export default function FirstLoginPage() {
     <>
       <div className="topbar">
         <div className="topbar-inner">
-          <div className="topbar-left"><img src="/logo.svg" alt="La Dogana" className="logo" /></div>
+          <div className="topbar-left"><img src="/logo.svg" alt="La Dogana" className="logo" /><span className="admin-brand-label">Guest Portal</span></div>
         </div>
         <div className="green-line" />
       </div>

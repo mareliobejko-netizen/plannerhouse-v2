@@ -331,14 +331,14 @@ La Dogana Team`;
         <div className="green-line" />
         <div className="topbar-inner">
           <div className="topbar-left">
-            <img src="/logo.svg" className="logo" alt="Villa logo" />
+            <img src="/logo.svg" className="logo" alt="La Dogana" />
             <span className="admin-brand-label">Admin</span>
           </div>
           <div className="admin-top-actions">
             <button className="btn admin-create-top" onClick={() => setCreateOpen(true)}>＋ Create new event</button>
             <button className="btn-ghost" onClick={() => (window.location.href = "/admin/users")}>User management</button>
             <button className="btn-ghost" onClick={() => (window.location.href = "/admin/media")}>Apartment photos</button>
-            <button className="btn-ghost" onClick={() => (window.location.href = "/events")}>Client area</button>
+            <button className="btn-ghost" onClick={() => (window.location.href = "/events")}>Guest portal</button>
             <button className="btn-ghost" onClick={async () => { await supabase.auth.signOut(); window.location.href = "/login"; }}>Logout</button>
           </div>
         </div>

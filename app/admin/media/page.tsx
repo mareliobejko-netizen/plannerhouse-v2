@@ -216,13 +216,13 @@ export default function AdminApartmentMediaPage() {
         <div className="green-line" />
         <div className="topbar-inner">
           <div className="topbar-left">
-            <img src="/logo.svg" className="logo" alt="Villa logo" />
+            <img src="/logo.svg" className="logo" alt="La Dogana" />
             <span className="admin-brand-label">Admin · Apartment media</span>
           </div>
           <div className="admin-top-actions">
             <button className="btn-ghost" onClick={() => (window.location.href = "/admin/events")}>Dashboard</button>
             <button className="btn-ghost" onClick={() => (window.location.href = "/admin/users")}>User management</button>
-            <button className="btn-ghost" onClick={() => (window.location.href = "/events")}>Client area</button>
+            <button className="btn-ghost" onClick={() => (window.location.href = "/events")}>Guest portal</button>
           </div>
         </div>
         <div className="green-line" />
