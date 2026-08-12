@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import PortalTopbar from "@/app/components/PortalTopbar";
 
 type OccRow = {
   event_id: string;
@@ -721,35 +722,22 @@ export default function EventPlannerPage() {
 
   return (
     <>
-      <div className="topbar">
-        <div className="green-line" />
-        <div className="topbar-inner">
-          <div className="topbar-left">
-            <img src="/logo.svg" className="logo" alt="La Dogana" />
-            <span className="admin-brand-label">Guest Portal</span>
-          </div>
+      <PortalTopbar variant="guest" active="planner" eventId={eventId} />
 
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
-            <span className={`badge ${eventStatus}`}>Status: {statusLabel}</span>
-
-            <button
-              className="btn"
-              onClick={() => {
-                setMailStage("open");
-                setConfirmOpen(true);
-              }}
-              disabled={submitting || eventStatus !== "draft"}
-              title={eventStatus !== "draft" ? "Event already confirmed" : "Confirm list"}
-            >
-              {submitting ? "Confirming..." : "Confirm list"}
-            </button>
-
-            <button className="btn-ghost" onClick={() => (window.location.href = "/events")}>Home Page</button>
-            <button className="btn-ghost" onClick={() => (window.location.href = "/account")}>Account</button>
-            <button className="btn-ghost" onClick={async () => { await supabase.auth.signOut(); window.location.href = "/login"; }}>Logout</button>
-          </div>
-        </div>
-        <div className="green-line" />
+      <div className="portal-page-actions portal-event-actions">
+        <span className="portal-event-status">Status: {statusLabel}</span>
+        <button
+          className="btn portal-confirm-action"
+          onClick={() => {
+            setMailStage("open");
+            setConfirmOpen(true);
+          }}
+          disabled={submitting || eventStatus !== "draft"}
+          title={eventStatus !== "draft" ? "Event already confirmed" : "Confirm guest list"}
+        >
+          <span className="portal-action-check" aria-hidden="true">✓</span>
+          {submitting ? "Confirming..." : "Confirm guest list"}
+        </button>
       </div>
 
       <div className="container planner-redesign">

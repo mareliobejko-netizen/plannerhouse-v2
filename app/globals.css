@@ -2621,3 +2621,9 @@ textarea{ resize: vertical; }
   .portal-social-icon:first-child{ display:none; }
   .portal-brand .logo{ width:102px; }
 }
+
+/* Event detail: highlighted Room Planner item */
+.portal-nav-item.active {
+  box-shadow: inset 0 0 0 1px rgba(48, 64, 48, 0.035);
+}
+

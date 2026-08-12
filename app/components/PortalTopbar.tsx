@@ -11,7 +11,8 @@ type IconProps = { size?: number };
 
 type PortalTopbarProps = {
   variant?: "guest" | "admin";
-  active?: "home" | "account" | "dashboard" | "users" | "photos";
+  active?: "home" | "planner" | "account" | "dashboard" | "users" | "photos";
+  eventId?: string;
   extraActions?: ReactNode;
 };
 
@@ -64,6 +65,16 @@ function IconGrid({ size = 18 }: IconProps) {
   );
 }
 
+function IconPlanner({ size = 18 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 6.5h16v11H4z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M7 10h10M7 13.5h4M15 13.5h2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M8 4.5v4M16 4.5v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function IconGlobe({ size = 18 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -99,7 +110,7 @@ function IconLogout({ size = 18 }: IconProps) {
   );
 }
 
-export default function PortalTopbar({ variant = "guest", active, extraActions }: PortalTopbarProps) {
+export default function PortalTopbar({ variant = "guest", active, eventId, extraActions }: PortalTopbarProps) {
   const isAdmin = variant === "admin";
 
   async function logout() {
@@ -141,6 +152,15 @@ export default function PortalTopbar({ variant = "guest", active, extraActions }
               <button className={`portal-nav-item ${active === "home" ? "active" : ""}`} onClick={() => (window.location.href = "/events")} title="Home">
                 <IconHome /><span>Home</span>
               </button>
+              {eventId && (
+                <button
+                  className={`portal-nav-item ${active === "planner" ? "active" : ""}`}
+                  onClick={() => (window.location.href = `/events/${eventId}`)}
+                  title="Room Planner"
+                >
+                  <IconPlanner /><span>Room Planner</span>
+                </button>
+              )}
               <button className={`portal-nav-item ${active === "account" ? "active" : ""}`} onClick={() => (window.location.href = "/account")} title="Account">
                 <IconUser /><span>Account</span>
               </button>
