@@ -2027,3 +2027,118 @@ textarea{ resize: vertical; }
   .apartment-candidate-actions { justify-content: flex-start; }
   .apartment-candidate-list { max-height: none; }
 }
+
+/* Step 3 — final review, note and portal feedback */
+.planner-final-extras {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
+  gap: 16px;
+  margin: 18px 0;
+}
+.planner-final-note-card,
+.planner-feedback-card {
+  min-width: 0;
+}
+.planner-final-textarea {
+  width: 100%;
+  margin-top: 14px;
+  min-height: 110px;
+  resize: vertical;
+  border: 1px solid rgba(48,64,48,.18);
+  border-radius: 16px;
+  padding: 14px 15px;
+  background: rgba(255,255,255,.78);
+  color: #263126;
+  font: inherit;
+  line-height: 1.5;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.planner-final-textarea:focus {
+  border-color: rgba(48,64,48,.48);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(48,64,48,.07);
+}
+.planner-final-charcount {
+  margin-top: 6px;
+  text-align: right;
+  font-size: 11px;
+  color: #7b867b;
+}
+.planner-feedback-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+  margin-top: 14px;
+}
+.planner-feedback-option {
+  border: 1px solid rgba(48,64,48,.14);
+  border-radius: 15px;
+  background: rgba(247,245,240,.72);
+  padding: 13px 8px;
+  min-height: 82px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  color: #304030;
+  transition: transform .15s ease, border-color .15s ease, background .15s ease, box-shadow .15s ease;
+}
+.planner-feedback-option span { font-size: 25px; line-height: 1; }
+.planner-feedback-option strong { font-size: 12px; text-align: center; }
+.planner-feedback-option:hover:not(:disabled) { transform: translateY(-1px); border-color: rgba(48,64,48,.34); }
+.planner-feedback-option.selected {
+  background: rgba(192,208,176,.36);
+  border-color: rgba(48,64,48,.48);
+  box-shadow: 0 5px 16px rgba(48,64,48,.08);
+}
+.planner-feedback-option:disabled { cursor: default; opacity: .72; }
+.planner-review-ready {
+  margin: 0 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  background: linear-gradient(135deg, rgba(192,208,176,.28), rgba(247,245,240,.95));
+  border-color: rgba(48,64,48,.15);
+}
+.planner-review-ready p { margin: 5px 0 0; color: #677267; max-width: 720px; line-height: 1.45; }
+@media (max-width: 860px) {
+  .planner-final-extras { grid-template-columns: 1fr; }
+  .planner-review-ready { align-items: stretch; flex-direction: column; }
+  .planner-review-ready .btn { width: 100%; }
+}
+@media (max-width: 540px) {
+  .planner-feedback-options { grid-template-columns: 1fr; }
+  .planner-feedback-option { min-height: 58px; flex-direction: row; justify-content: flex-start; padding: 11px 13px; }
+  .planner-feedback-option span { font-size: 22px; }
+}
+
+/* Admin — couple final note & feedback */
+.admin-couple-message-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 12px;
+}
+.admin-couple-message-grid > div {
+  border: 1px solid rgba(48,64,48,.11);
+  border-radius: 16px;
+  padding: 15px;
+  background: rgba(247,245,240,.55);
+}
+.admin-couple-message-grid strong { color: #304030; }
+.admin-couple-message-grid p { margin: 8px 0 0; color: #657065; line-height: 1.5; white-space: pre-wrap; }
+.admin-feedback-rating {
+  display: inline-flex;
+  margin-top: 10px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(192,208,176,.34);
+  color: #304030;
+  font-weight: 700;
+  font-size: 13px;
+}
+@media (max-width: 760px) { .admin-couple-message-grid { grid-template-columns: 1fr; } }

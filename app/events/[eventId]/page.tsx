@@ -146,6 +146,9 @@ export default function EventPlannerPage() {
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [mailStage, setMailStage] = useState<"open" | "closing" | "closed">("open");
+  const [coupleNote, setCoupleNote] = useState("");
+  const [portalFeedback, setPortalFeedback] = useState<"loved" | "good" | "could_be_better" | "">("");
+  const [portalFeedbackComment, setPortalFeedbackComment] = useState("");
 
   useEffect(() => {
     if (!lightboxPhoto) return;
@@ -248,9 +251,12 @@ export default function EventPlannerPage() {
 
   async function refreshEventStatus() {
     if (!eventId) return;
-    const { data, error } = await supabase.from("events").select("status").eq("id", eventId).single();
+    const { data, error } = await supabase.from("events").select("status,couple_note,portal_feedback_rating,portal_feedback_comment").eq("id", eventId).single();
     if (error) throw new Error(error.message);
     if (data?.status) setEventStatus(data.status);
+    setCoupleNote((data?.couple_note ?? "") as string);
+    setPortalFeedback((data?.portal_feedback_rating ?? "") as "loved" | "good" | "could_be_better" | "");
+    setPortalFeedbackComment((data?.portal_feedback_comment ?? "") as string);
   }
 
   async function refreshOccupancy() {
@@ -355,7 +361,14 @@ export default function EventPlannerPage() {
 
       const { error } = await supabase
         .from("events")
-        .update({ status: "submitted", submitted_at: new Date().toISOString(), submitted_by: u.user.id })
+        .update({
+          status: "submitted",
+          submitted_at: new Date().toISOString(),
+          submitted_by: u.user.id,
+          couple_note: coupleNote.trim() || null,
+          portal_feedback_rating: portalFeedback || null,
+          portal_feedback_comment: portalFeedbackComment.trim() || null,
+        })
         .eq("id", eventId)
         .eq("created_by", u.user.id)
         .eq("status", "draft");
@@ -640,11 +653,14 @@ export default function EventPlannerPage() {
 
         const { data: ev, error: evErr } = await supabase
           .from("events")
-          .select("status,start_date,end_date")
+          .select("status,start_date,end_date,couple_note,portal_feedback_rating,portal_feedback_comment")
           .eq("id", eventId)
           .single();
         if (evErr) throw new Error(evErr.message);
         if (ev?.status) setEventStatus(ev.status);
+        setCoupleNote((ev?.couple_note ?? "") as string);
+        setPortalFeedback((ev?.portal_feedback_rating ?? "") as "loved" | "good" | "could_be_better" | "");
+        setPortalFeedbackComment((ev?.portal_feedback_comment ?? "") as string);
         const s = (ev?.start_date ?? "") as string;
         const e = (ev?.end_date ?? "") as string;
         setEventStart(s);
@@ -1045,8 +1061,8 @@ export default function EventPlannerPage() {
             <div className="planner-review-hero card card-pad">
               <div>
                 <div className="planner-section-kicker">Step 3</div>
-                <div className="h-serif planner-section-title" style={{ fontSize: 30 }}>Review your guest list</div>
-                <p className="planner-section-copy">Double-check every apartment before sending the final list to Lucia and the team.</p>
+                <div className="h-serif planner-section-title" style={{ fontSize: 30 }}>Final review & submit</div>
+                <p className="planner-section-copy">Check your guest list, apartment assignments and important notes before submitting everything to La Dogana.</p>
               </div>
               <div className="planner-review-actions">
                 <button className="btn-ghost" onClick={() => setPlannerStep("assign")}>← Back to planner</button>
@@ -1065,6 +1081,66 @@ export default function EventPlannerPage() {
                 Some guests are still unassigned. You can still submit later, but for the best result we recommend assigning everyone first.
               </div>
             )}
+
+            <div className="planner-final-extras">
+              <section className="card card-pad planner-final-note-card">
+                <div className="planner-section-kicker">A note for La Dogana</div>
+                <div className="h-serif" style={{ fontSize: 22, fontWeight: 700, marginTop: 4 }}>Anything else you'd like us to know?</div>
+                <p className="planner-section-copy" style={{ marginTop: 6 }}>Share any final detail, request or useful information for Lucia and the team.</p>
+                <textarea
+                  className="planner-final-textarea"
+                  rows={5}
+                  maxLength={1500}
+                  placeholder="Add a note for La Dogana…"
+                  value={coupleNote}
+                  onChange={(e) => setCoupleNote(e.target.value)}
+                  disabled={locked}
+                />
+                <div className="planner-final-charcount">{coupleNote.length}/1500</div>
+              </section>
+
+              <section className="card card-pad planner-feedback-card">
+                <div className="planner-section-kicker">Your experience</div>
+                <div className="h-serif" style={{ fontSize: 22, fontWeight: 700, marginTop: 4 }}>How was PlannerHouse?</div>
+                <p className="planner-section-copy" style={{ marginTop: 6 }}>Optional — your feedback helps us make the portal even easier for future couples.</p>
+                <div className="planner-feedback-options" role="group" aria-label="PlannerHouse feedback">
+                  {[
+                    { value: "loved", emoji: "😍", label: "Loved it" },
+                    { value: "good", emoji: "🙂", label: "It was good" },
+                    { value: "could_be_better", emoji: "😕", label: "Could be better" },
+                  ].map((option) => (
+                    <button
+                      type="button"
+                      key={option.value}
+                      className={`planner-feedback-option ${portalFeedback === option.value ? "selected" : ""}`}
+                      onClick={() => setPortalFeedback(option.value as "loved" | "good" | "could_be_better")}
+                      disabled={locked}
+                      aria-pressed={portalFeedback === option.value}
+                    >
+                      <span>{option.emoji}</span>
+                      <strong>{option.label}</strong>
+                    </button>
+                  ))}
+                </div>
+                <textarea
+                  className="planner-final-textarea"
+                  rows={3}
+                  maxLength={1000}
+                  placeholder="Tell us what you think… (optional)"
+                  value={portalFeedbackComment}
+                  onChange={(e) => setPortalFeedbackComment(e.target.value)}
+                  disabled={locked}
+                />
+              </section>
+            </div>
+
+            <div className="planner-review-ready card card-pad">
+              <div>
+                <div className="h-serif" style={{ fontSize: 22, fontWeight: 700 }}>Everything looks good?</div>
+                <p>Once you submit, La Dogana will receive your latest rooming list together with your note and optional feedback.</p>
+              </div>
+              <button className="btn" onClick={() => { setMailStage("open"); setConfirmOpen(true); }} disabled={submitting || eventStatus !== "draft" || totalGuests === 0}>{submitting ? "Sending…" : "Submit guest list"}</button>
+            </div>
 
             <div className="planner-review-grid">
               {apartmentGroups.map((apt) => (

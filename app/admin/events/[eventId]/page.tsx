@@ -44,6 +44,9 @@ type EvRow = {
   welcome_message: string | null;
   tip_message: string | null;
   tutorial_video_url: string | null;
+  couple_note: string | null;
+  portal_feedback_rating: "loved" | "good" | "could_be_better" | null;
+  portal_feedback_comment: string | null;
 };
 
 type TabKey = "overview" | "guests" | "apartments" | "settings";
@@ -134,7 +137,7 @@ export default function AdminEventPage() {
       const [eventResult, occupancyResult, guestsResult] = await Promise.all([
         supabase
           .from("events")
-          .select("id,name,status,start_date,end_date,created_at,created_by,submitted_at,submitted_by,welcome_title,welcome_message,tip_message,tutorial_video_url")
+          .select("id,name,status,start_date,end_date,created_at,created_by,submitted_at,submitted_by,welcome_title,welcome_message,tip_message,tutorial_video_url,couple_note,portal_feedback_rating,portal_feedback_comment")
           .eq("id", eventId)
           .single(),
         supabase
@@ -530,6 +533,25 @@ ${apartmentSections}
                 <div><strong>{apartments.length - fullApartments - emptyApartments}</strong><span>Partial</span></div>
               </div>
             </div>
+
+            {(ev.couple_note || ev.portal_feedback_rating || ev.portal_feedback_comment) && (
+              <div className="card card-pad admin-event-panel admin-event-wide-panel admin-couple-message-panel">
+                <div className="admin-event-panel-head"><div><span>From the couple</span><h2>Final note & PlannerHouse feedback</h2></div></div>
+                <div className="admin-couple-message-grid">
+                  <div>
+                    <strong>Note for La Dogana</strong>
+                    <p>{ev.couple_note || "No final note was added."}</p>
+                  </div>
+                  <div>
+                    <strong>PlannerHouse experience</strong>
+                    <div className="admin-feedback-rating">
+                      {ev.portal_feedback_rating === "loved" ? "😍 Loved it" : ev.portal_feedback_rating === "good" ? "🙂 It was good" : ev.portal_feedback_rating === "could_be_better" ? "😕 Could be better" : "No rating"}
+                    </div>
+                    <p>{ev.portal_feedback_comment || "No additional feedback."}</p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="card card-pad admin-event-panel admin-event-wide-panel">
               <div className="admin-event-panel-head"><div><span>Review workflow</span><h2>Guest list status</h2></div></div>
