@@ -110,6 +110,9 @@ export default function EventPlannerPage() {
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
   const [photoIndex, setPhotoIndex] = useState(0);
   const [photoCache, setPhotoCache] = useState<Record<string, string[]>>({});
+  const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
+  const [modalGuestSearch, setModalGuestSearch] = useState("");
+  const [forgottenGuestOpen, setForgottenGuestOpen] = useState(false);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -161,6 +164,18 @@ export default function EventPlannerPage() {
       return { id: r.apartment_id, label, status: st, structure: r.structure, floor: r.floor, capacity: r.capacity, guests: r.guests_count };
     });
   }, [occ]);
+
+  const modalGuestCandidates = useMemo(() => {
+    const q = modalGuestSearch.trim().toLowerCase();
+    return allGuests
+      .filter((g) => g.apartment_id !== openAptId)
+      .filter((g) => !q || `${g.first_name} ${g.last_name}`.toLowerCase().includes(q))
+      .sort((a, b) => {
+        if (a.apartment_id == null && b.apartment_id != null) return -1;
+        if (a.apartment_id != null && b.apartment_id == null) return 1;
+        return `${a.last_name} ${a.first_name}`.localeCompare(`${b.last_name} ${b.first_name}`);
+      });
+  }, [allGuests, modalGuestSearch, openAptId]);
 
   const totalGuests = allGuests.length;
   const assignedGuests = allGuests.filter((g) => !!g.apartment_id).length;
@@ -361,6 +376,9 @@ export default function EventPlannerPage() {
   async function openApartment(apartmentId: string) {
     setModalErr(null);
     setOpenAptId(apartmentId);
+    setModalGuestSearch("");
+    setForgottenGuestOpen(false);
+    setLightboxPhoto(null);
     setCheckinDate(eventStart || "");
     setCheckoutDate(eventEnd || "");
     resetForm();
@@ -553,6 +571,7 @@ export default function EventPlannerPage() {
       await Promise.all([loadUnassigned(), loadAllGuests()]);
       if (openAptId) await loadGuestsForApartment(openAptId);
       resetForm();
+      if (forgottenGuestOpen) setForgottenGuestOpen(false);
       if (openAptId && !toUnassigned) setModalErr(null);
       else {
         setFormOk(toUnassigned ? "Guest added. You can assign this guest in the next step." : "Guest added.");
@@ -1180,7 +1199,10 @@ export default function EventPlannerPage() {
                       <div className="muted" style={{ marginTop: 10 }}>No photos uploaded.</div>
                     ) : (
                       <>
-                        <div className="photo-hero" style={{ marginTop: 10 }}><img src={photoUrls[photoIndex]} alt="Apartment photo" /></div>
+                        <button className="photo-hero photo-hero-button" style={{ marginTop: 10 }} onClick={() => setLightboxPhoto(photoUrls[photoIndex])} aria-label="Enlarge apartment photo">
+                          <img src={photoUrls[photoIndex]} alt="Apartment photo" />
+                          <span className="photo-zoom-hint">↗ Enlarge photo</span>
+                        </button>
                         <div className="photo-strip">
                           {photoUrls.slice(0, 5).map((url, idx) => (
                             <div key={url} className={`thumb ${idx === photoIndex ? "active" : ""}`} onClick={() => setPhotoIndex(idx)} role="button" aria-label={`Photo ${idx + 1}`}>
@@ -1233,49 +1255,85 @@ export default function EventPlannerPage() {
                     )}
                   </div>
 
-                  <div className="card card-pad" style={{ boxShadow: "none" }}>
-                    <div className="h-serif" style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Add guest to this apartment</div>
-                    <div style={{ display: "grid", gap: 10 }}>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                        <div><div className="label">First name</div><input className="input" value={firstName} onChange={(e) => setFirstName(e.target.value)} disabled={saving || locked} /></div>
-                        <div><div className="label">Last name</div><input className="input" value={lastName} onChange={(e) => setLastName(e.target.value)} disabled={saving || locked} /></div>
+                  <div className="card card-pad apartment-assign-panel" style={{ boxShadow: "none" }}>
+                    <div className="h-serif" style={{ fontSize: 20, fontWeight: 700 }}>Assign guests to {friendlyAptLabel(openAptId)}</div>
+                    <div className="muted" style={{ marginTop: 4 }}>Choose a guest you already added and assign them directly to this apartment.</div>
+
+                    <div className="forgotten-guest-callout">
+                      <div>
+                        <strong>Forgot someone?</strong>
+                        <span>No worries — you can add a new guest here.</span>
                       </div>
-
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                        <div><div className="label">Type</div><select value={guestType} onChange={(e) => setGuestType(e.target.value as any)} disabled={saving || locked}><option value="adult">Adult</option><option value="child">Child</option></select></div>
-                        <div><div className="label">Age (children only)</div><input className="input" value={childAge} onChange={(e) => setChildAge(e.target.value === "" ? "" : Number(e.target.value))} disabled={saving || locked || guestType !== "child"} type="number" min={0} max={17} /></div>
-                      </div>
-
-                      <div><div className="label">Arrival</div><select value={arrivalMode} onChange={(e) => setArrivalMode(e.target.value as any)} disabled={saving || locked}><option value="">—</option><option value="car">Car</option><option value="transfer">Transfer</option></select></div>
-
-                      <div style={{ display: "grid", minWidth: 0, gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                        <div>
-                          <div className="label">Check-in</div>
-                          <select value={checkinDate || eventStart} disabled={saving || locked || !eventStart} onChange={(e) => setCheckinDate(e.target.value)}>
-                            <option value={eventStart}>{eventStart}</option>
-                            <option value={addDaysIso(eventStart, -1)}>{addDaysIso(eventStart, -1)} (one day before)</option>
-                          </select>
-                          <div className="muted" style={{ fontSize: 12, marginTop: 6 }}>To arrive earlier, choose “1 day earlier”.</div>
-                        </div>
-                        <div>
-                          <div className="label">Check-out</div>
-                          <select value={checkoutDate || eventEnd} disabled={saving || locked || !eventEnd} onChange={(e) => setCheckoutDate(e.target.value)}>
-                            <option value={eventEnd}>{eventEnd}</option>
-                          </select>
-                          <div className="muted" style={{ fontSize: 12, marginTop: 6 }}>Check-out is fixed by the event.</div>
-                        </div>
-                      </div>
-
-                      <div><div className="label">Extra nights</div><input className="input" type="number" min={0} value={extraNights} onChange={(e) => setExtraNights(Number(e.target.value))} disabled={saving || locked} /></div>
-                      <div><div className="label">Allergies / intolerances</div><input className="input" value={allergies} onChange={(e) => setAllergies(e.target.value)} disabled={saving || locked} /></div>
-                      <div><div className="label">Notes</div><textarea value={notes} onChange={(e) => setNotess(e.target.value)} disabled={saving || locked} rows={3} /></div>
-
-                      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                        <button className="btn" onClick={() => addGuest(false)} disabled={saving || locked}>Add here</button>
-                        <button className="btn-ghost" onClick={() => addGuest(true)} disabled={saving || locked}>Add as unassigned</button>
-                      </div>
-                      <div className="muted" style={{ fontSize: 12 }}>Tip: choose “Add as unassigned” if you want to select the apartment later.</div>
+                      <button className="btn-ghost btn-sm" disabled={locked} onClick={() => {
+                        resetForm();
+                        setCheckinDate(eventStart || "");
+                        setCheckoutDate(eventEnd || "");
+                        setForgottenGuestOpen((v) => !v);
+                      }}>+ Add forgotten guest</button>
                     </div>
+
+                    {forgottenGuestOpen && (
+                      <div className="forgotten-guest-form">
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+                          <div className="h-serif" style={{ fontSize: 17, fontWeight: 700 }}>Add a forgotten guest</div>
+                          <button className="btn-ghost btn-sm" onClick={() => setForgottenGuestOpen(false)}>Close</button>
+                        </div>
+                        <div className="planner-form-grid" style={{ marginTop: 10 }}>
+                          <div><div className="label">First name</div><input className="input" value={firstName} onChange={(e) => setFirstName(e.target.value)} disabled={saving || locked} /></div>
+                          <div><div className="label">Last name</div><input className="input" value={lastName} onChange={(e) => setLastName(e.target.value)} disabled={saving || locked} /></div>
+                          <div><div className="label">Type</div><select value={guestType} onChange={(e) => setGuestType(e.target.value as "adult" | "child")} disabled={saving || locked}><option value="adult">Adult</option><option value="child">Child</option></select></div>
+                          <div><div className="label">Age (children only)</div><input className="input" type="number" min={0} max={17} value={childAge} onChange={(e) => setChildAge(e.target.value === "" ? "" : Number(e.target.value))} disabled={saving || locked || guestType !== "child"} /></div>
+                          <div><div className="label">Arrival</div><select value={arrivalMode} onChange={(e) => setArrivalMode(e.target.value as "" | "car" | "transfer")} disabled={saving || locked}><option value="">—</option><option value="car">Car</option><option value="transfer">Transfer</option></select></div>
+                          <div><div className="label">Extra nights</div><input className="input" type="number" min={0} value={extraNights} onChange={(e) => setExtraNights(Number(e.target.value))} disabled={saving || locked} /></div>
+                          <div><div className="label">Check-in</div><select value={checkinDate || eventStart} disabled={saving || locked || !eventStart} onChange={(e) => setCheckinDate(e.target.value)}><option value={eventStart}>{eventStart}</option><option value={addDaysIso(eventStart, -1)}>{addDaysIso(eventStart, -1)} (one day before)</option></select></div>
+                          <div><div className="label">Check-out</div><select value={checkoutDate || eventEnd} disabled={saving || locked || !eventEnd} onChange={(e) => setCheckoutDate(e.target.value)}><option value={eventEnd}>{eventEnd}</option></select></div>
+                          <div className="guest-edit-span2"><div className="label">Allergies / intolerances</div><input className="input" value={allergies} onChange={(e) => setAllergies(e.target.value)} disabled={saving || locked} /></div>
+                          <div className="guest-edit-span2"><div className="label">Notes</div><textarea value={notes} onChange={(e) => setNotess(e.target.value)} disabled={saving || locked} rows={3} /></div>
+                        </div>
+                        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 10 }}>
+                          <button className="btn-ghost" onClick={() => setForgottenGuestOpen(false)} disabled={saving}>Cancel</button>
+                          <button className="btn" onClick={() => addGuest(true)} disabled={saving || locked}>{saving ? "Adding…" : "Add to guest list"}</button>
+                        </div>
+                      </div>
+                    )}
+
+                    <div style={{ marginTop: 14 }}>
+                      <div className="label">Search guests</div>
+                      <input className="input" placeholder="First or last name…" value={modalGuestSearch} onChange={(e) => setModalGuestSearch(e.target.value)} />
+                    </div>
+
+                    <div className="apartment-candidate-header">
+                      <span>{modalGuestCandidates.length} guest{modalGuestCandidates.length === 1 ? "" : "s"} available</span>
+                      <span>Apartment capacity: {openAptInfo?.guests ?? 0}/{openAptInfo?.capacity ?? "?"}</span>
+                    </div>
+
+                    {modalGuestCandidates.length === 0 ? (
+                      <div className="planner-empty-card" style={{ marginTop: 10 }}>
+                        <div className="h-serif">No guests to show</div>
+                        <p>{modalGuestSearch ? "Try a different search." : "Everyone is already assigned to this apartment, or your guest list is empty."}</p>
+                      </div>
+                    ) : (
+                      <div className="apartment-candidate-list">
+                        {modalGuestCandidates.map((g) => (
+                          <div key={g.id} className="apartment-candidate-row">
+                            <div className="apartment-candidate-main">
+                              <div className="planner-guest-name">{g.first_name} {g.last_name}</div>
+                              <div className="planner-guest-meta">
+                                {g.guest_type === "child" ? `Child${g.child_age != null ? ` • ${g.child_age} years` : ""}` : "Adult"}
+                                {g.apartment_id ? ` • Currently in ${friendlyAptLabel(g.apartment_id)}` : " • Unassigned"}
+                              </div>
+                            </div>
+                            <div className="apartment-candidate-actions">
+                              <button className="btn-ghost btn-sm" disabled={locked} onClick={() => startEditGuest(g)}>Edit</button>
+                              <button className="btn btn-sm" disabled={locked || openAptInfo?.status === "full"} onClick={() => setGuestApartment(g.id, openAptId, true)}>
+                                {g.apartment_id ? "Move here" : "Assign here"}
+                              </button>
+                              <button className="btn-ghost btn-sm danger-soft" disabled={locked} onClick={() => deleteGuest(g.id)}>Delete</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1283,6 +1341,13 @@ export default function EventPlannerPage() {
           </div>
         )}
       </div>
+
+      {lightboxPhoto && (
+        <div className="photo-lightbox" onClick={() => setLightboxPhoto(null)}>
+          <button className="photo-lightbox-close" onClick={() => setLightboxPhoto(null)}>Close</button>
+          <img src={lightboxPhoto} alt="Apartment enlarged" onClick={(e) => e.stopPropagation()} />
+        </div>
+      )}
 
       {confirmOpen && (
         <div className="mbox-backdrop" onClick={() => { if (submitting || mailStage !== "open") return; setConfirmOpen(false); }}>

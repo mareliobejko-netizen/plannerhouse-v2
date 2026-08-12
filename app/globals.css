@@ -1846,3 +1846,118 @@ textarea{ resize: vertical; }
   .admin-event-stat-grid strong { font-size: 28px; }
   .admin-event-top-actions .badge { display: none; }
 }
+
+/* Apartment modal — guest assignment redesign */
+.photo-hero-button {
+  position: relative;
+  display: block;
+  padding: 0;
+  border: 1px solid rgba(48,64,48,.12);
+  cursor: zoom-in;
+  text-align: left;
+  appearance: none;
+}
+.photo-zoom-hint {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.9);
+  color: #304030;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 5px 18px rgba(34,46,34,.12);
+}
+.forgotten-guest-callout {
+  margin-top: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(48,64,48,.12);
+  border-radius: 14px;
+  background: rgba(247,245,240,.78);
+}
+.forgotten-guest-callout strong,
+.forgotten-guest-callout span { display: block; }
+.forgotten-guest-callout strong { color: #304030; margin-bottom: 2px; }
+.forgotten-guest-callout span { color: rgba(48,64,48,.64); font-size: 12px; }
+.forgotten-guest-form {
+  margin-top: 10px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(48,64,48,.14);
+  background: rgba(255,255,255,.74);
+}
+.apartment-candidate-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  color: rgba(48,64,48,.58);
+  font-size: 12px;
+}
+.apartment-candidate-list {
+  display: grid;
+  gap: 9px;
+  margin-top: 10px;
+  max-height: 430px;
+  overflow: auto;
+  padding-right: 3px;
+}
+.apartment-candidate-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 12px;
+  border: 1px solid rgba(48,64,48,.12);
+  border-radius: 14px;
+  background: rgba(255,255,255,.78);
+}
+.apartment-candidate-main { min-width: 0; }
+.apartment-candidate-actions {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.danger-soft { color: #9f3f3f; }
+.photo-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  background: rgba(15,20,15,.88);
+  backdrop-filter: blur(8px);
+}
+.photo-lightbox img {
+  max-width: min(94vw, 1500px);
+  max-height: 88vh;
+  object-fit: contain;
+  border-radius: 18px;
+  box-shadow: 0 30px 80px rgba(0,0,0,.38);
+}
+.photo-lightbox-close {
+  position: fixed;
+  top: 18px;
+  right: 20px;
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: #fff;
+  color: #304030;
+  font-weight: 700;
+  cursor: pointer;
+}
+@media (max-width: 700px) {
+  .forgotten-guest-callout,
+  .apartment-candidate-row { align-items: stretch; flex-direction: column; }
+  .apartment-candidate-actions { justify-content: flex-start; }
+  .apartment-candidate-list { max-height: none; }
+}
