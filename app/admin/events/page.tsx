@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { requireAdminOrRedirect } from "@/lib/requireAdmin";
+import PortalTopbar from "@/app/components/PortalTopbar";
 
 const DEFAULT_WELCOME_TITLE = "Welcome to your private area";
 const DEFAULT_WELCOME_MESSAGE = `We are delighted that you chose our villa for such a special occasion. This page is designed to make apartment and guest management simple and organised: you can add guest names, note any requirements (such as allergies or intolerances), and assign people to rooms quickly and clearly.
@@ -327,23 +328,7 @@ La Dogana Team`;
 
   return (
     <>
-      <div className="topbar admin-topbar">
-        <div className="green-line" />
-        <div className="topbar-inner">
-          <div className="topbar-left">
-            <img src="/logo.svg" className="logo" alt="La Dogana" />
-            <span className="admin-brand-label">Admin</span>
-          </div>
-          <div className="admin-top-actions">
-            <button className="btn admin-create-top" onClick={() => setCreateOpen(true)}>＋ Create new event</button>
-            <button className="btn-ghost" onClick={() => (window.location.href = "/admin/users")}>User management</button>
-            <button className="btn-ghost" onClick={() => (window.location.href = "/admin/media")}>Apartment photos</button>
-            <button className="btn-ghost" onClick={() => (window.location.href = "/events")}>Guest portal</button>
-            <button className="btn-ghost" onClick={async () => { await supabase.auth.signOut(); window.location.href = "/login"; }}>Logout</button>
-          </div>
-        </div>
-        <div className="green-line" />
-      </div>
+      <PortalTopbar variant="admin" active="dashboard" />
 
       <main className="container admin-dashboard">
         <section className="admin-hero">

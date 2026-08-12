@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { supabase } from "@/lib/supabaseClient";
+import PortalTopbar from "@/app/components/PortalTopbar";
 
 export default function AccountPage() {
   const [email, setEmail] = useState("");
@@ -62,17 +63,7 @@ export default function AccountPage() {
 
   return (
     <>
-      <div className="topbar">
-        <div className="green-line" />
-        <div className="topbar-inner">
-          <div className="topbar-left"><img src="/logo.svg" alt="La Dogana" className="logo" /><span className="admin-brand-label">Guest Portal</span></div>
-          <div style={{ display: "flex", gap: 10 }}>
-            <button className="btn-ghost" onClick={() => (window.location.href = "/events")}>Back to portal</button>
-            <button className="btn-ghost" onClick={async () => { await supabase.auth.signOut(); window.location.href = "/login"; }}>Logout</button>
-          </div>
-        </div>
-        <div className="green-line" />
-      </div>
+      <PortalTopbar variant="guest" active="account" />
 
       <main className="container account-shell">
         <section className="account-hero">

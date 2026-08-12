@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import PortalTopbar from "@/app/components/PortalTopbar";
 
 type EventRow = {
   id: string;
@@ -16,10 +17,6 @@ type EventRow = {
   tutorial_video_url: string | null;
 };
 
-const WEBSITE_URL = "https://agriturismodogana.it/"; // TODO: cambia
-const INSTAGRAM_URL = "https://www.instagram.com/luciasitalia/"; // TODO: cambia
-const FACEBOOK_URL = "https://www.facebook.com/agriturismodogana.it/"; // TODO: cambia
-
 const DEFAULT_WELCOME_TITLE = "Welcome to your private area";
 const DEFAULT_WELCOME_MESSAGE = `We are delighted that you chose our villa for such a special occasion. This page is designed to make apartment and guest management simple and organised: you can add guest names, note any requirements (such as allergies or intolerances), and assign people to rooms quickly and clearly.
 
@@ -27,67 +24,6 @@ Our goal is to make the planning process as stress-free as possible: we will do 
 
 Thank you again for your trust — we look forward to welcoming you!`;
 const DEFAULT_TIP_MESSAGE = "Open the planner and start adding guests. When you are finished, submit the list.";
-
-function IconGlobe(props: { size?: number }) {
-  const s = props.size ?? 18;
-  return (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M12 22a10 10 0 1 0-10-10 10 10 0 0 0 10 10Z"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      />
-      <path
-        d="M2 12h20"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-      <path
-        d="M12 2c3 2.9 5 6.4 5 10s-2 7.1-5 10c-3-2.9-5-6.4-5-10s2-7.1 5-10Z"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function IconInstagram(props: { size?: number }) {
-  const s = props.size ?? 18;
-  return (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5Z"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      />
-      <path
-        d="M12 16.2a4.2 4.2 0 1 0-4.2-4.2A4.2 4.2 0 0 0 12 16.2Z"
-        stroke="currentColor"
-        strokeWidth="1.8"
-      />
-      <path
-        d="M17.6 6.6h.01"
-        stroke="currentColor"
-        strokeWidth="2.4"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function IconFacebook(props: { size?: number }) {
-  const s = props.size ?? 18;
-  return (
-    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M14 8.5V7.2c0-.9.6-1.2 1.2-1.2H17V2.8h-2.7c-2.9 0-4.3 1.8-4.3 4.2v1.5H7v3.2h3V22h4v-10.3h3l.7-3.2H14Z"
-        fill="currentColor"
-      />
-    </svg>
-  );
-}
 
 function fmtDate(d: string | null) {
   if (!d) return "—";
@@ -231,54 +167,7 @@ export default function EventsHomePage() {
 
   return (
     <>
-      {/* TOPBAR */}
-      <div className="topbar">
-        <div className="topbar-inner">
-          <div className="topbar-left">
-            <img src="/logo.svg" alt="La Dogana" className="logo" />
-            <span className="admin-brand-label">Guest Portal</span>
-          </div>
-
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
-            <a className="btn-ghost social-btn" href={WEBSITE_URL} target="_blank" rel="noreferrer" aria-label="Open website">
-  <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-    <IconGlobe />
-    <span className="social-text">Website</span>
-  </span>
-</a>
-
-
-            <a className="btn-ghost social-btn" href={INSTAGRAM_URL} target="_blank" rel="noreferrer" aria-label="Open Instagram">
-  <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-    <IconInstagram />
-    <span className="social-text">Instagram</span>
-  </span>
-</a>
-
-
-           <a className="btn-ghost social-btn" href={FACEBOOK_URL} target="_blank" rel="noreferrer" aria-label="Open Facebook">
-  <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-    <IconFacebook />
-    <span className="social-text">Facebook</span>
-  </span>
-</a>
-
-
-            <button className="btn-ghost" onClick={() => (window.location.href = "/account")}>Account</button>
-
-            <button
-              className="btn-ghost"
-              onClick={async () => {
-                await supabase.auth.signOut();
-                window.location.href = "/login";
-              }}
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-        <div className="green-line" />
-      </div>
+      <PortalTopbar variant="guest" active="home" />
 
       <main className="container couple-home">
         {err && (
