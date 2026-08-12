@@ -337,6 +337,7 @@ La Dogana Team`;
           <div className="admin-top-actions">
             <button className="btn admin-create-top" onClick={() => setCreateOpen(true)}>＋ Create new event</button>
             <button className="btn-ghost" onClick={() => (window.location.href = "/admin/users")}>User management</button>
+            <button className="btn-ghost" onClick={() => (window.location.href = "/admin/media")}>Apartment photos</button>
             <button className="btn-ghost" onClick={() => (window.location.href = "/events")}>Client area</button>
             <button className="btn-ghost" onClick={async () => { await supabase.auth.signOut(); window.location.href = "/login"; }}>Logout</button>
           </div>
@@ -359,6 +360,10 @@ La Dogana Team`;
             <button className="admin-hero-create secondary" onClick={() => (window.location.href = "/admin/users")}>
               <span>◎</span>
               <div><strong>Manage users</strong><small>Edit login details, passwords and old accounts</small></div>
+            </button>
+            <button className="admin-hero-create secondary" onClick={() => (window.location.href = "/admin/media")}>
+              <span>▧</span>
+              <div><strong>Apartment photos</strong><small>Upload, reorder and choose gallery covers</small></div>
             </button>
           </div>
         </section>
