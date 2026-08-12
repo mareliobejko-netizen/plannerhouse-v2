@@ -328,7 +328,7 @@ La Dogana Team`;
 
   return (
     <>
-      <PortalTopbar variant="admin" active="dashboard" />
+      <PortalTopbar variant="admin" active="events" />
 
       <main className="container admin-dashboard">
         <section className="admin-hero">

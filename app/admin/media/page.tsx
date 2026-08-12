@@ -3,6 +3,7 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { requireAdminOrRedirect } from "@/lib/requireAdmin";
+import PortalTopbar from "@/app/components/PortalTopbar";
 
 type Apartment = {
   id: string;
@@ -212,21 +213,7 @@ export default function AdminApartmentMediaPage() {
 
   return (
     <>
-      <div className="topbar admin-topbar">
-        <div className="green-line" />
-        <div className="topbar-inner">
-          <div className="topbar-left">
-            <img src="/logo.svg" className="logo" alt="La Dogana" />
-            <span className="admin-brand-label">Admin · Apartment media</span>
-          </div>
-          <div className="admin-top-actions">
-            <button className="btn-ghost" onClick={() => (window.location.href = "/admin/events")}>Dashboard</button>
-            <button className="btn-ghost" onClick={() => (window.location.href = "/admin/users")}>User management</button>
-            <button className="btn-ghost" onClick={() => (window.location.href = "/events")}>Guest portal</button>
-          </div>
-        </div>
-        <div className="green-line" />
-      </div>
+      <PortalTopbar variant="admin" active="media" />
 
       <main className="container admin-media-page">
         <section className="admin-media-hero">

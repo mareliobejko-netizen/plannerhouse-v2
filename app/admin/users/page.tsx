@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { requireAdminOrRedirect } from "@/lib/requireAdmin";
 import { supabase } from "@/lib/supabaseClient";
+import PortalTopbar from "@/app/components/PortalTopbar";
 
 type LinkedEvent = {
   id: string;
@@ -187,16 +188,7 @@ export default function AdminUsersPage() {
 
   return (
     <>
-      <div className="topbar admin-topbar">
-        <div className="green-line" />
-        <div className="topbar-inner">
-          <div className="topbar-left"><img src="/logo.svg" className="logo" alt="La Dogana" /><span className="admin-brand-label">Admin</span></div>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <button className="btn-ghost" onClick={() => (window.location.href = "/admin/events")}>Events dashboard</button>
-            <button className="btn-ghost" onClick={async () => { await supabase.auth.signOut(); window.location.href = "/login"; }}>Logout</button>
-          </div>
-        </div>
-      </div>
+      <PortalTopbar variant="admin" active="users" />
 
       <main className="container admin-users-page">
         <section className="admin-users-hero">

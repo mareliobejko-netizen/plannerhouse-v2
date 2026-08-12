@@ -11,7 +11,7 @@ type IconProps = { size?: number };
 
 type PortalTopbarProps = {
   variant?: "guest" | "admin";
-  active?: "home" | "planner" | "account" | "dashboard" | "users" | "photos";
+  active?: "home" | "planner" | "account" | "events" | "users" | "media";
   eventId?: string;
   extraActions?: ReactNode;
 };
@@ -134,14 +134,14 @@ export default function PortalTopbar({ variant = "guest", active, eventId, extra
         <nav className="portal-nav" aria-label={isAdmin ? "Admin navigation" : "Guest navigation"}>
           {isAdmin ? (
             <>
-              <button className={`portal-nav-item ${active === "dashboard" ? "active" : ""}`} onClick={() => (window.location.href = "/admin/events")} title="Dashboard">
-                <IconGrid /><span>Dashboard</span>
+              <button className={`portal-nav-item ${active === "events" ? "active" : ""}`} onClick={() => (window.location.href = "/admin/events")} title="Events">
+                <IconGrid /><span>Events</span>
               </button>
               <button className={`portal-nav-item ${active === "users" ? "active" : ""}`} onClick={() => (window.location.href = "/admin/users")} title="User management">
                 <IconUsers /><span>Users</span>
               </button>
-              <button className={`portal-nav-item ${active === "photos" ? "active" : ""}`} onClick={() => (window.location.href = "/admin/media")} title="Apartment photos">
-                <IconPhotos /><span>Photos</span>
+              <button className={`portal-nav-item ${active === "media" ? "active" : ""}`} onClick={() => (window.location.href = "/admin/media")} title="Apartment media">
+                <IconPhotos /><span>Media</span>
               </button>
               <button className="portal-nav-item portal-guest-link" onClick={() => (window.location.href = "/events")} title="Guest portal">
                 <IconHome /><span>Guest portal</span>
