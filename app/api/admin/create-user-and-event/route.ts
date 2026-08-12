@@ -97,7 +97,7 @@ export async function POST(req: Request) {
 
       await sql`
         INSERT INTO public.event_members (event_id, user_id, role)
-        VALUES (${eventId}::uuid, ${newUserId}::uuid, 'client')
+        VALUES (${eventId}::uuid, ${newUserId}::uuid, 'couple_editor')
       `;
 
       return NextResponse.json({ ok: true, user_id: newUserId, event_id: eventId });
