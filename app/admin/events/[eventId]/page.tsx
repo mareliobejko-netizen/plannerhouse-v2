@@ -420,14 +420,27 @@ ${apartmentSections}
 </body>
 </html>`;
 
-    const printWindow = window.open("", "_blank", "noopener,noreferrer");
+    // Do not pass `noopener` in window.open features here. In Chromium-based
+    // browsers that can intentionally make window.open() return null even when
+    // the tab was opened successfully, which made the app report a false
+    // "pop-up blocked" error and prevented us from writing the printable report.
+    const printWindow = window.open("", "_blank");
     if (!printWindow) {
-      setStatusMsg({ type: "err", text: "Your browser blocked the PDF window. Allow pop-ups and try again." });
+      setStatusMsg({ type: "err", text: "Your browser blocked the PDF window. Allow pop-ups for this site and try again." });
       return;
     }
+
+    // Detach the new tab from the admin window after we have a valid handle.
+    try {
+      printWindow.opener = null;
+    } catch {
+      // Some browsers may not allow changing opener; printing can still continue.
+    }
+
     printWindow.document.open();
     printWindow.document.write(report);
     printWindow.document.close();
+    printWindow.focus();
   }
 
   if (loading || !ev) {
