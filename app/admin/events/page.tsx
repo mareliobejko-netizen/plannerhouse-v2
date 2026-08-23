@@ -12,7 +12,6 @@ Our goal is to make the planning process as stress-free as possible: we will do 
 
 Thank you again for your trust — we look forward to welcoming you!`;
 const DEFAULT_TIP_MESSAGE = "Open the planner and start adding guests. When you are finished, submit the list.";
-const DEFAULT_TUTORIAL_VIDEO_URL = "https://youtu.be/ZSSrr_j07uU?si=XpkhZd2jN9nJMWDu";
 
 type EventRow = {
   id: string;
@@ -115,7 +114,7 @@ export default function AdminEventsPage() {
   const [newWelcomeTitle, setNewWelcomeTitle] = useState(DEFAULT_WELCOME_TITLE);
   const [newWelcomeMessage, setNewWelcomeMessage] = useState(DEFAULT_WELCOME_MESSAGE);
   const [newTipMessage, setNewTipMessage] = useState(DEFAULT_TIP_MESSAGE);
-  const [newTutorialVideoUrl, setNewTutorialVideoUrl] = useState(DEFAULT_TUTORIAL_VIDEO_URL);
+  const [newTutorialVideoUrl, setNewTutorialVideoUrl] = useState("");
   const [createMsg, setCreateMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [creating, setCreating] = useState(false);
   const [createdInvite, setCreatedInvite] = useState<CreatedInvite | null>(null);
@@ -134,7 +133,7 @@ export default function AdminEventsPage() {
     setNewWelcomeTitle(DEFAULT_WELCOME_TITLE);
     setNewWelcomeMessage(DEFAULT_WELCOME_MESSAGE);
     setNewTipMessage(DEFAULT_TIP_MESSAGE);
-    setNewTutorialVideoUrl(DEFAULT_TUTORIAL_VIDEO_URL);
+    setNewTutorialVideoUrl("");
   }
 
   async function load() {
