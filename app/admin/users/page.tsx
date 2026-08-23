@@ -275,7 +275,7 @@ export default function AdminUsersPage() {
               {modalMsg && <div className={`admin-create-message ${modalMsg.type}`}>{modalMsg.text}</div>}
 
               {selected.is_superadmin && !viewerIsSuperadmin && (
-                <div className="admin-create-message admin-protected-account">This is the protected Superadmin account. Only the Superadmin can modify its details or password.</div>
+                <div className="admin-create-message admin-protected-account">This is a protected Superadmin account. Only another Superadmin can modify its details or password.</div>
               )}
 
               {(viewerIsSuperadmin || !selected.is_admin) && <section className="admin-create-section">
@@ -298,9 +298,9 @@ export default function AdminUsersPage() {
 
               {viewerIsSuperadmin && (
                 <section className="admin-create-section admin-role-section">
-                  <div className="admin-create-section-title"><span>R</span><div><strong>Access role</strong><small>Only the Superadmin can grant or remove Admin access</small></div></div>
+                  <div className="admin-create-section-title"><span>R</span><div><strong>Access role</strong><small>Only Superadmins can grant or remove Admin access</small></div></div>
                   {selected.is_superadmin ? (
-                    <div className="admin-role-protected"><span className="admin-user-role superadmin">Superadmin</span><p>This is the only Superadmin account and its role cannot be changed.</p></div>
+                    <div className="admin-role-protected"><span className="admin-user-role superadmin">Superadmin</span><p>This account is protected. Superadmin access is managed through the server configuration.</p></div>
                   ) : selected.is_admin ? (
                     <div className="admin-role-action"><div><span className="admin-user-role admin">Admin</span><p>This user can create and manage users and events.</p></div><button className="btn-ghost admin-danger-button" onClick={() => setAdminRole(false)} disabled={busy}>Remove admin access</button></div>
                   ) : (

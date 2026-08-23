@@ -2,12 +2,20 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { sql } from "@/lib/neon";
 
-const SUPERADMIN_EMAIL = (process.env.SUPERADMIN_EMAIL || "admindemo@demo.com").trim().toLowerCase();
+const DEFAULT_SECOND_SUPERADMIN_EMAIL = "deferrarilucia@gmail.com";
+const configuredSuperadminEmails = process.env.SUPERADMIN_EMAILS
+  || `${process.env.SUPERADMIN_EMAIL || "admindemo@demo.com"},${DEFAULT_SECOND_SUPERADMIN_EMAIL}`;
+const SUPERADMIN_EMAILS = new Set(
+  configuredSuperadminEmails
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean),
+);
 
 type AdminSession = { id: string; email: string; isSuperadmin: boolean };
 
 function isSuperadminEmail(email: unknown) {
-  return String(email ?? "").trim().toLowerCase() === SUPERADMIN_EMAIL;
+  return SUPERADMIN_EMAILS.has(String(email ?? "").trim().toLowerCase());
 }
 
 function apiErrorStatus(message: string) {
@@ -162,7 +170,7 @@ export async function PATCH(req: Request) {
       const email = String(body.email ?? "").trim().toLowerCase();
       if (!email || !email.includes("@")) return NextResponse.json({ error: "Enter a valid email address" }, { status: 400 });
       if (targetIsSuperadmin && !isSuperadminEmail(email)) {
-        return NextResponse.json({ error: "Change SUPERADMIN_EMAIL before changing the Superadmin email" }, { status: 400 });
+        return NextResponse.json({ error: "Change SUPERADMIN_EMAILS before changing a Superadmin email" }, { status: 400 });
       }
 
       await sql`
