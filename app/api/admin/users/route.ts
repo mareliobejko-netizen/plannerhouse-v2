@@ -2,14 +2,38 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { sql } from "@/lib/neon";
 
-type AdminSession = { id: string };
+const SUPERADMIN_EMAIL = (process.env.SUPERADMIN_EMAIL || "admindemo@demo.com").trim().toLowerCase();
+
+type AdminSession = { id: string; email: string; isSuperadmin: boolean };
+
+function isSuperadminEmail(email: unknown) {
+  return String(email ?? "").trim().toLowerCase() === SUPERADMIN_EMAIL;
+}
+
+function apiErrorStatus(message: string) {
+  if (message === "Unauthorized") return 401;
+  if (message === "Not allowed" || message.includes("Superadmin") || message.includes("Protected admin")) return 403;
+  return 500;
+}
 
 async function requireAdmin(req: Request): Promise<AdminSession> {
   const session = await auth.api.getSession({ headers: req.headers });
   if (!session?.user) throw new Error("Unauthorized");
 
-  const rows = await sql`SELECT is_admin FROM public.profiles WHERE id = ${session.user.id}::uuid LIMIT 1`;
-  if (!rows[0]?.is_admin) throw new Error("Not allowed");
+  const rows = await sql`
+    SELECT p.is_admin, u.email
+    FROM public.profiles p
+    JOIN "user" u ON u.id::text = p.id::text
+    WHERE p.id = ${session.user.id}::uuid
+    LIMIT 1
+  `;
+  const email = String(rows[0]?.email ?? session.user.email ?? "").trim().toLowerCase();
+  const isSuperadmin = isSuperadminEmail(email);
+  if (!rows[0]?.is_admin && !isSuperadmin) throw new Error("Not allowed");
+
+  if (isSuperadmin && !rows[0]?.is_admin) {
+    await sql`UPDATE public.profiles SET is_admin = true WHERE id = ${session.user.id}::uuid`;
+  }
 
   // Keep the Better Auth admin role aligned with the app's profiles.is_admin flag.
   await sql`
@@ -18,12 +42,12 @@ async function requireAdmin(req: Request): Promise<AdminSession> {
     WHERE id = ${session.user.id} AND (role IS DISTINCT FROM 'admin')
   `;
 
-  return { id: session.user.id };
+  return { id: session.user.id, email, isSuperadmin };
 }
 
 export async function GET(req: Request) {
   try {
-    await requireAdmin(req);
+    const admin = await requireAdmin(req);
 
     const users = await sql`
       SELECT
@@ -75,12 +99,14 @@ export async function GET(req: Request) {
       users: users.map((user: any) => ({
         ...user,
         id: String(user.id),
+        is_superadmin: isSuperadminEmail(user.email),
         events: eventsByUser.get(String(user.id)) ?? [],
       })),
+      viewer: { id: admin.id, is_superadmin: admin.isSuperadmin },
     });
   } catch (error: any) {
     const message = error?.message ?? "Unable to load users";
-    const status = message === "Unauthorized" ? 401 : message === "Not allowed" ? 403 : 500;
+    const status = apiErrorStatus(message);
     return NextResponse.json({ error: message }, { status });
   }
 }
@@ -92,13 +118,52 @@ export async function PATCH(req: Request) {
     const userId = String(body.userId ?? "");
     if (!userId) return NextResponse.json({ error: "Missing user id" }, { status: 400 });
 
-    const current = await sql`SELECT id, email, name FROM "user" WHERE id = ${userId} LIMIT 1`;
+    const current = await sql`
+      SELECT u.id, u.email, u.name, COALESCE(p.is_admin, false) AS is_admin
+      FROM "user" u
+      LEFT JOIN public.profiles p ON p.id::text = u.id::text
+      WHERE u.id = ${userId}
+      LIMIT 1
+    `;
     if (!current[0]) return NextResponse.json({ error: "User not found" }, { status: 404 });
+    const targetIsSuperadmin = isSuperadminEmail(current[0].email);
+    const targetIsAdmin = Boolean(current[0].is_admin) || targetIsSuperadmin;
+
+    if (body.action === "role") {
+      if (!admin.isSuperadmin) throw new Error("Superadmin privileges required");
+      if (targetIsSuperadmin) return NextResponse.json({ error: "The Superadmin role cannot be changed" }, { status: 403 });
+
+      const makeAdmin = Boolean(body.isAdmin);
+      await sql`
+        UPDATE public.profiles
+        SET is_admin = ${makeAdmin}
+        WHERE id = ${userId}::uuid
+      `;
+      await sql`
+        UPDATE "user"
+        SET role = ${makeAdmin ? "admin" : "user"}, "updatedAt" = now()
+        WHERE id = ${userId}
+      `;
+      if (!makeAdmin) {
+        await auth.api.revokeUserSessions({
+          body: { userId },
+          headers: req.headers,
+        } as any);
+      }
+      return NextResponse.json({ ok: true, is_admin: makeAdmin });
+    }
+
+    if (targetIsAdmin && !admin.isSuperadmin) {
+      throw new Error("Protected admin account: only the Superadmin can modify it");
+    }
 
     if (body.action === "details") {
       const name = String(body.name ?? "").trim();
       const email = String(body.email ?? "").trim().toLowerCase();
       if (!email || !email.includes("@")) return NextResponse.json({ error: "Enter a valid email address" }, { status: 400 });
+      if (targetIsSuperadmin && !isSuperadminEmail(email)) {
+        return NextResponse.json({ error: "Change SUPERADMIN_EMAIL before changing the Superadmin email" }, { status: 400 });
+      }
 
       await sql`
         UPDATE "user"
@@ -137,7 +202,7 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: "Unsupported action" }, { status: 400 });
   } catch (error: any) {
     const message = error?.message ?? "Unable to update user";
-    const status = message === "Unauthorized" ? 401 : message === "Not allowed" ? 403 : 500;
+    const status = apiErrorStatus(message);
     return NextResponse.json({ error: message }, { status });
   }
 }
@@ -149,6 +214,21 @@ export async function DELETE(req: Request) {
     const userId = url.searchParams.get("userId") ?? "";
     if (!userId) return NextResponse.json({ error: "Missing user id" }, { status: 400 });
     if (userId === admin.id) return NextResponse.json({ error: "You cannot delete your own admin account" }, { status: 400 });
+
+    const target = await sql`
+      SELECT u.email, COALESCE(p.is_admin, false) AS is_admin
+      FROM "user" u
+      LEFT JOIN public.profiles p ON p.id::text = u.id::text
+      WHERE u.id = ${userId}
+      LIMIT 1
+    `;
+    if (!target[0]) return NextResponse.json({ error: "User not found" }, { status: 404 });
+    if (isSuperadminEmail(target[0].email)) {
+      return NextResponse.json({ error: "The Superadmin account cannot be deleted" }, { status: 403 });
+    }
+    if (target[0].is_admin && !admin.isSuperadmin) {
+      return NextResponse.json({ error: "Only the Superadmin can delete another Admin" }, { status: 403 });
+    }
 
     const ownedEvents = await sql`SELECT id, name FROM public.events WHERE created_by = ${userId}::uuid LIMIT 5`;
     if (ownedEvents.length > 0) {
@@ -169,7 +249,7 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ ok: true });
   } catch (error: any) {
     const message = error?.message ?? "Unable to delete user";
-    const status = message === "Unauthorized" ? 401 : message === "Not allowed" ? 403 : 500;
+    const status = apiErrorStatus(message);
     return NextResponse.json({ error: message }, { status });
   }
 }

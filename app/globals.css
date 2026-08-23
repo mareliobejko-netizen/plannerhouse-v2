@@ -2282,6 +2282,7 @@ textarea{ resize: vertical; }
 .admin-user-main small { color: #8a928a; }
 .admin-user-role { padding: 3px 7px; border-radius: 999px; background: rgba(48,64,48,.07); color: #5f6b5f; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
 .admin-user-role.admin { background: rgba(192,208,176,.38); color: #304030; }
+.admin-user-role.superadmin { background: #304030; color: #fff; box-shadow: 0 4px 12px rgba(48,64,48,.18); }
 .admin-user-events-mini { min-width: 0; display: grid; gap: 3px; }
 .admin-user-events-mini span { font-size: 12px; color: #667166; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -2325,6 +2326,12 @@ textarea{ resize: vertical; }
   gap: 18px;
 }
 .admin-danger-zone p { margin: 4px 0 0; color: #7c6a68; font-size: 12px; }
+.admin-protected-account { background: rgba(192,208,176,.2); color: #304030; border: 1px solid rgba(48,64,48,.12); }
+.admin-role-section { background: linear-gradient(135deg, rgba(247,245,240,.85), rgba(192,208,176,.12)); }
+.admin-role-action, .admin-role-protected { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+.admin-role-action > div, .admin-role-protected { min-width: 0; }
+.admin-role-action p, .admin-role-protected p { margin: 7px 0 0; color: #667166; font-size: 12px; }
+.admin-role-protected { justify-content: flex-start; padding: 12px 14px; border-radius: 14px; background: rgba(48,64,48,.05); }
 
 @media (max-width: 850px) {
   .admin-user-card { grid-template-columns: auto 1fr auto; }
@@ -2341,7 +2348,7 @@ textarea{ resize: vertical; }
   .admin-password-field { grid-template-columns: 1fr; }
   .admin-invite-generated-head { align-items: stretch; flex-direction: column; }
   .admin-invite-actions { justify-content: flex-start; }
-  .admin-user-event-row, .admin-danger-zone { align-items: stretch; flex-direction: column; }
+  .admin-user-event-row, .admin-danger-zone, .admin-role-action { align-items: stretch; flex-direction: column; }
   .admin-user-event-row > div:last-child { width: 100%; }
 }
 
@@ -2649,4 +2656,3 @@ textarea{ resize: vertical; }
     border-radius: 50%;
   }
 }
-

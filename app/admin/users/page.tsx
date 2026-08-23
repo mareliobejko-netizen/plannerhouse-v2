@@ -23,6 +23,7 @@ type AdminUser = {
   role: string | null;
   banned: boolean | null;
   is_admin: boolean | null;
+  is_superadmin: boolean;
   password_prompt_pending: boolean;
   created_at: string;
   events: LinkedEvent[];
@@ -63,6 +64,7 @@ export default function AdminUsersPage() {
   const [newPassword, setNewPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [modalMsg, setModalMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [viewerIsSuperadmin, setViewerIsSuperadmin] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -73,6 +75,7 @@ export default function AdminUsersPage() {
       const json = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(json?.error ?? "Unable to load users");
       setUsers((json.users ?? []) as AdminUser[]);
+      setViewerIsSuperadmin(Boolean(json.viewer?.is_superadmin));
     } catch (error: any) {
       setErr(error?.message ?? "Unable to load users");
     } finally {
@@ -141,6 +144,32 @@ export default function AdminUsersPage() {
       await load();
     } catch (error: any) {
       setModalMsg({ type: "err", text: error?.message ?? "Unable to set password" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function setAdminRole(makeAdmin: boolean) {
+    if (!selected || selected.is_superadmin || !viewerIsSuperadmin) return;
+    const actionLabel = makeAdmin ? "promote this user to Admin" : "remove Admin access from this user";
+    if (!confirm(`Are you sure you want to ${actionLabel}?`)) return;
+
+    setBusy(true);
+    setModalMsg(null);
+    try {
+      const response = await fetch("/api/admin/users", {
+        method: "PATCH",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "role", userId: selected.id, isAdmin: makeAdmin }),
+      });
+      const json = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(json?.error ?? "Unable to update the user role");
+      setModalMsg({ type: "ok", text: makeAdmin ? "User promoted to Admin." : "Admin access removed." });
+      setSelected((current) => current ? { ...current, is_admin: makeAdmin, role: makeAdmin ? "admin" : "user" } : current);
+      await load();
+    } catch (error: any) {
+      setModalMsg({ type: "err", text: error?.message ?? "Unable to update the user role" });
     } finally {
       setBusy(false);
     }
@@ -218,7 +247,7 @@ export default function AdminUsersPage() {
                 <article className="admin-user-card" key={user.id}>
                   <div className="admin-user-avatar">{displayName.slice(0, 1).toUpperCase()}</div>
                   <div className="admin-user-main">
-                    <div className="admin-user-name-row"><strong>{displayName}</strong>{user.is_admin && <span className="admin-user-role admin">Admin</span>}{!user.is_admin && <span className="admin-user-role">Guest</span>}</div>
+                    <div className="admin-user-name-row"><strong>{displayName}</strong>{user.is_superadmin ? <span className="admin-user-role superadmin">Superadmin</span> : user.is_admin ? <span className="admin-user-role admin">Admin</span> : <span className="admin-user-role">Guest</span>}</div>
                     <span>{user.email}</span>
                     <small>{user.events.length} linked event{user.events.length === 1 ? "" : "s"}{user.password_prompt_pending ? " · Password choice pending" : ""}</small>
                   </div>
@@ -245,23 +274,40 @@ export default function AdminUsersPage() {
             <div className="admin-user-modal-body">
               {modalMsg && <div className={`admin-create-message ${modalMsg.type}`}>{modalMsg.text}</div>}
 
-              <section className="admin-create-section">
-                <div className="admin-create-section-title"><span>1</span><div><strong>Account details</strong><small>Change the guest's name or login email</small></div></div>
+              {selected.is_superadmin && !viewerIsSuperadmin && (
+                <div className="admin-create-message admin-protected-account">This is the protected Superadmin account. Only the Superadmin can modify its details or password.</div>
+              )}
+
+              {(viewerIsSuperadmin || !selected.is_admin) && <section className="admin-create-section">
+                <div className="admin-create-section-title"><span>1</span><div><strong>Account details</strong><small>Change the account name or login email</small></div></div>
                 <div className="admin-form-grid">
                   <div><div className="label">Full name</div><input className="input" value={editName} onChange={(e) => setEditName(e.target.value)} disabled={busy} /></div>
                   <div><div className="label">Email</div><input className="input" type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} disabled={busy} /></div>
                 </div>
                 <button className="btn" onClick={saveDetails} disabled={busy}>Save details</button>
-              </section>
+              </section>}
 
-              <section className="admin-create-section">
+              {(viewerIsSuperadmin || !selected.is_admin) && <section className="admin-create-section">
                 <div className="admin-create-section-title"><span>2</span><div><strong>Set a new temporary password</strong><small>The guest will see the password choice again on their next login</small></div></div>
                 <div className="admin-password-field">
                   <input className="input" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} disabled={busy} placeholder="New temporary password" />
                   <button type="button" className="btn-ghost admin-generate-password" onClick={() => setNewPassword(generatePassword())} disabled={busy}>Generate</button>
                 </div>
                 <button className="btn" onClick={setPassword} disabled={busy || newPassword.length < 8}>Set password</button>
-              </section>
+              </section>}
+
+              {viewerIsSuperadmin && (
+                <section className="admin-create-section admin-role-section">
+                  <div className="admin-create-section-title"><span>R</span><div><strong>Access role</strong><small>Only the Superadmin can grant or remove Admin access</small></div></div>
+                  {selected.is_superadmin ? (
+                    <div className="admin-role-protected"><span className="admin-user-role superadmin">Superadmin</span><p>This is the only Superadmin account and its role cannot be changed.</p></div>
+                  ) : selected.is_admin ? (
+                    <div className="admin-role-action"><div><span className="admin-user-role admin">Admin</span><p>This user can create and manage users and events.</p></div><button className="btn-ghost admin-danger-button" onClick={() => setAdminRole(false)} disabled={busy}>Remove admin access</button></div>
+                  ) : (
+                    <div className="admin-role-action"><div><span className="admin-user-role">Guest</span><p>Promote this user to let them manage users and events.</p></div><button className="btn" onClick={() => setAdminRole(true)} disabled={busy}>Make admin</button></div>
+                  )}
+                </section>
+              )}
 
               <section className="admin-create-section">
                 <div className="admin-create-section-title"><span>3</span><div><strong>Linked events</strong><small>Open or permanently delete events associated with this user</small></div></div>
@@ -277,7 +323,7 @@ export default function AdminUsersPage() {
                 )}
               </section>
 
-              {!selected.is_admin && (
+              {!selected.is_superadmin && (!selected.is_admin || viewerIsSuperadmin) && (
                 <section className="admin-danger-zone">
                   <div><strong>Delete user account</strong><p>This permanently removes the login. Delete owned events first.</p></div>
                   <button className="btn-ghost admin-danger-button" onClick={deleteUser} disabled={busy}>Delete user</button>
